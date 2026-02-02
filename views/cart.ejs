@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>購物車</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">資源商店 🛒</h1>
+        <ul class="nav-menu">
+          <li><a href="/">首頁</a></li>
+          <li><a href="/cart" class="active">購物車</a></li>
+          <li><a href="/orders">訂單記錄</a></li>
+          <li><a href="/payment">支付設定</a></li>
+          <li><a href="/logout">登出 (<%= user.username %>)</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>我嘅購物車</h2>
+    
+    <% if (items.length === 0) { %>
+      <div class="empty-cart">
+        <p>您嘅購物車係空嘅</p>
+        <a href="/" class="btn btn-primary">繼續購物</a>
+      </div>
+    <% } else { %>
+      <div class="cart-container">
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>產品</th>
+              <th>價格</th>
+              <th>數量</th>
+              <th>小計</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let total = 0; %>
+            <% items.forEach(item => { %>
+              <% const subtotal = item.price * item.quantity; %>
+              <% total += subtotal; %>
+              <tr>
+                <td>
+                  <div class="cart-item-info">
+                    <span class="cart-item-icon">📦</span>
+                    <span><%= item.name %></span>
+                  </div>
+                </td>
+                <td>HK$ <%= item.price.toFixed(2) %></td>
+                <td>
+                  <input type="number" 
+                         class="quantity-input" 
+                         value="<%= item.quantity %>" 
+                         min="1"
+                         onchange="updateQuantity(<%= item.id %>, this.value)">
+                </td>
+                <td>HK$ <%= subtotal.toFixed(2) %></td>
+                <td>
+                  <button class="btn btn-danger btn-sm" onclick="removeItem(<%= item.id %>)">移除</button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3"><strong>總計:</strong></td>
+              <td colspan="2"><strong>HK$ <%= total.toFixed(2) %></strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        
+        <div class="cart-actions">
+          <a href="/" class="btn btn-secondary">繼續購物</a>
+          <a href="/checkout" class="btn btn-primary btn-large">前往結賬</a>
+        </div>
+      </div>
+    <% } %>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 資源商店. 版權所有.</p>
+    </div>
+  </footer>
+
+  <script>
+    function updateQuantity(cartId, quantity) {
+      fetch('/cart/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cart_id: cartId, quantity: parseInt(quantity) })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.error || '更新失敗');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('操作失敗');
+      });
+    }
+
+    function removeItem(cartId) {
+      if (confirm('確定要移除呢個產品？')) {
+        fetch('/cart/remove', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cart_id: cartId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert(data.error || '刪除失敗');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('操作失敗');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

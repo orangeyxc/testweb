@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>結賬</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">資源商店 🛒</h1>
+        <ul class="nav-menu">
+          <li><a href="/">首頁</a></li>
+          <li><a href="/cart">購物車</a></li>
+          <li><a href="/orders">訂單記錄</a></li>
+          <li><a href="/payment">支付設定</a></li>
+          <li><a href="/logout">登出 (<%= user.username %>)</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>確認訂單</h2>
+    
+    <div class="checkout-container">
+      <div class="order-summary">
+        <h3>訂單明細</h3>
+        <table class="checkout-table">
+          <thead>
+            <tr>
+              <th>產品</th>
+              <th>數量</th>
+              <th>價格</th>
+              <th>小計</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let total = 0; %>
+            <% items.forEach(item => { %>
+              <% const subtotal = item.price * item.quantity; %>
+              <% total += subtotal; %>
+              <tr>
+                <td><%= item.name %></td>
+                <td><%= item.quantity %></td>
+                <td>HK$ <%= item.price.toFixed(2) %></td>
+                <td>HK$ <%= subtotal.toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3"><strong>總計:</strong></td>
+              <td><strong>HK$ <%= total.toFixed(2) %></strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="payment-selection">
+        <h3>選擇支付方式</h3>
+        <% if (paymentMethods.length === 0) { %>
+          <p>未有保存嘅支付方式，<a href="/payment">請先添加支付方式</a></p>
+        <% } else { %>
+          <form id="checkoutForm">
+            <div class="payment-options">
+              <% paymentMethods.forEach((method, index) => { %>
+                <label class="payment-option">
+                  <input type="radio" name="payment_method" value="<%= method.id %>" <%= index === 0 ? 'checked' : '' %>>
+                  <div class="payment-option-content">
+                    <span class="payment-icon">💳</span>
+                    <div>
+                      <p><strong><%= method.card_holder %></strong></p>
+                      <p><%= method.card_number %></p>
+                    </div>
+                  </div>
+                </label>
+              <% }); %>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large btn-block">確認購買</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 資源商店. 版權所有.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
+      fetch('/order/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ payment_method_id: paymentMethod })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.href = '/orders';
+        } else {
+          alert(data.error || '訂單創建失敗');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('操作失敗');
+      });
+    });
+  </script>
+</body>
+</html>

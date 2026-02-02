@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用戶註冊</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">資源商店 🛒</h1>
+        <ul class="nav-menu">
+          <li><a href="/">首頁</a></li>
+          <li><a href="/login">登入</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="form-container">
+      <h2>用戶註冊</h2>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="username">用戶名</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="email">電郵地址</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">密碼</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">註冊</button>
+      </form>
+      <p class="form-footer">已有帳戶？ <a href="/login">立即登入</a></p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 資源商店. 版權所有.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      };
+
+      fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.href = '/login';
+        } else {
+          alert(data.error || '註冊失敗');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('操作失敗');
+      });
+    });
+  </script>
+</body>
+</html>
