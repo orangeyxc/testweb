@@ -38,7 +38,11 @@ const db = {
   prepare(sql) {
     return {
       run(...params) {
-        connection.query(sql, params, () => {});
+        connection.query(sql, params, (err) => {
+          if (err) {
+            console.error('資料庫操作失敗:', err.message);
+          }
+        });
       },
       finalize() {}
     };
