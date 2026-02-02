@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product.name %> - 產品詳情</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">資源商店 🛒</h1>
+        <ul class="nav-menu">
+          <li><a href="/">首頁</a></li>
+          <% if (user) { %>
+            <li><a href="/cart">購物車</a></li>
+            <li><a href="/orders">訂單記錄</a></li>
+            <li><a href="/payment">支付設定</a></li>
+            <li><a href="/logout">登出 (<%= user.username %>)</a></li>
+          <% } else { %>
+            <li><a href="/login">登入</a></li>
+            <li><a href="/register">註冊</a></li>
+          <% } %>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="product-detail">
+      <div class="product-image-large">
+        <div class="placeholder-image-large">📦</div>
+      </div>
+      <div class="product-detail-info">
+        <h2><%= product.name %></h2>
+        <p class="product-description-large"><%= product.description %></p>
+        <p class="product-price-large">HK$ <%= product.price.toFixed(2) %></p>
+        <p class="product-stock">庫存: <%= product.stock %></p>
+        
+        <div class="quantity-selector">
+          <label for="quantity">數量:</label>
+          <input type="number" id="quantity" value="1" min="1" max="<%= product.stock %>">
+        </div>
+        
+        <div class="product-actions">
+          <% if (user) { %>
+            <button class="btn btn-primary btn-large" onclick="addToCart(<%= product.id %>)">加入購物車</button>
+          <% } else { %>
+            <a href="/login" class="btn btn-primary btn-large">登入購買</a>
+          <% } %>
+          <a href="/" class="btn btn-secondary">返回首頁</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 資源商店. 版權所有.</p>
+    </div>
+  </footer>
+
+  <script>
+    function addToCart(productId) {
+      const quantity = document.getElementById('quantity').value;
+      
+      fetch('/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ product_id: productId, quantity: parseInt(quantity) })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          window.location.href = '/cart';
+        } else {
+          alert(data.error || '添加失敗');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('操作失敗');
+      });
+    }
+  </script>
+</body>
+</html>

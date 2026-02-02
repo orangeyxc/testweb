@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>購物網站 - 首頁</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1 class="logo">資源商店 🛒</h1>
+        <ul class="nav-menu">
+          <li><a href="/">首頁</a></li>
+          <% if (user) { %>
+            <li><a href="/cart">購物車</a></li>
+            <li><a href="/orders">訂單記錄</a></li>
+            <li><a href="/payment">支付設定</a></li>
+            <li><a href="/logout">登出 (<%= user.username %>)</a></li>
+          <% } else { %>
+            <li><a href="/login">登入</a></li>
+            <li><a href="/register">註冊</a></li>
+          <% } %>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h2>歡迎嚟到資源商店</h2>
+      <p>提供各種優質學習資源同開發工具</p>
+    </section>
+
+    <section class="products">
+      <h2>精選產品</h2>
+      <div class="product-grid">
+        <% products.forEach(product => { %>
+          <div class="product-card">
+            <div class="product-image">
+              <div class="placeholder-image">📦</div>
+            </div>
+            <div class="product-info">
+              <h3><%= product.name %></h3>
+              <p class="product-description"><%= product.description %></p>
+              <p class="product-price">HK$ <%= product.price.toFixed(2) %></p>
+              <p class="product-stock">庫存: <%= product.stock %></p>
+              <div class="product-actions">
+                <a href="/product/<%= product.id %>" class="btn btn-secondary">查看詳情</a>
+                <% if (user) { %>
+                  <button class="btn btn-primary" onclick="addToCart(<%= product.id %>)">加入購物車</button>
+                <% } else { %>
+                  <a href="/login" class="btn btn-primary">登入購買</a>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 資源商店. 版權所有.</p>
+    </div>
+  </footer>
+
+  <script>
+    function addToCart(productId) {
+      fetch('/cart/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ product_id: productId, quantity: 1 })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+        } else {
+          alert(data.error || '添加失敗');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('操作失敗');
+      });
+    }
+  </script>
+</body>
+</html>
