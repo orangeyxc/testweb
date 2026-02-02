@@ -1,9 +1,15 @@
 // 數據庫初始化 (Database Initialization)
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const mysql = require('mysql2');
 
 // 建立數據庫連接 (Create database connection)
-const db = new sqlite3.Database(path.join(__dirname, 'shopping.db'), (err) => {
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'shopping'
+});
+
+connection.connect((err) => {
   if (err) {
     console.error('數據庫連接失敗:', err.message);
   } else {
@@ -11,70 +17,113 @@ const db = new sqlite3.Database(path.join(__dirname, 'shopping.db'), (err) => {
   }
 });
 
+function resolveParams(params, callback) {
+  if (typeof params === 'function') {
+    return { params: [], callback: params };
+  }
+  return { params: params || [], callback };
+}
+
+const db = {
+  run(sql, params, callback) {
+    const resolved = resolveParams(params, callback);
+    connection.query(sql, resolved.params, (err, results) => {
+      if (resolved.callback) {
+        const context = { lastID: results && results.insertId };
+        resolved.callback.call(context, err, results);
+      }
+    });
+  },
+  prepare(sql) {
+    return {
+      run(...params) {
+        connection.query(sql, params, () => {});
+      },
+      finalize() {}
+    };
+  },
+  get(sql, params, callback) {
+    const resolved = resolveParams(params, callback);
+    connection.query(sql, resolved.params, (err, results) => {
+      if (resolved.callback) {
+        resolved.callback(err, results && results[0]);
+      }
+    });
+  },
+  all(sql, params, callback) {
+    const resolved = resolveParams(params, callback);
+    connection.query(sql, resolved.params, (err, results) => {
+      if (resolved.callback) {
+        resolved.callback(err, results);
+      }
+    });
+  }
+};
+
 // 初始化數據庫表 (Initialize database tables)
 function initializeDatabase() {
   // 用戶表 (Users table)
   db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) ENGINE=InnoDB`);
 
   // 產品表 (Products table)
   db.run(`CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
-    price REAL NOT NULL,
-    stock INTEGER DEFAULT 0,
-    image_url TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT DEFAULT 0,
+    image_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) ENGINE=InnoDB`);
 
   // 購物車表 (Shopping cart table)
   db.run(`CREATE TABLE IF NOT EXISTS cart (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    quantity INTEGER DEFAULT 1,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT DEFAULT 1,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (product_id) REFERENCES products (id)
-  )`);
+  ) ENGINE=InnoDB`);
 
   // 訂單表 (Orders table)
   db.run(`CREATE TABLE IF NOT EXISTS orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    total_amount REAL NOT NULL,
-    status TEXT DEFAULT 'pending',
-    payment_method TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    payment_method VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
-  )`);
+  ) ENGINE=InnoDB`);
 
   // 訂單項目表 (Order items table)
   db.run(`CREATE TABLE IF NOT EXISTS order_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL,
-    price REAL NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (product_id) REFERENCES products (id)
-  )`);
+  ) ENGINE=InnoDB`);
 
   // 支付資訊表 (Payment information table)
   db.run(`CREATE TABLE IF NOT EXISTS payment_info (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    card_number TEXT NOT NULL,
-    card_holder TEXT NOT NULL,
-    expiry_date TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    card_number VARCHAR(255) NOT NULL,
+    card_holder VARCHAR(255) NOT NULL,
+    expiry_date VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
-  )`, (err) => {
+  ) ENGINE=InnoDB`, (err) => {
     if (err) {
       console.error('建立表失敗:', err.message);
     } else {
@@ -101,11 +150,12 @@ function insertSampleProducts() {
     }
     
     if (row.count === 0) {
-      const stmt = db.prepare('INSERT INTO products (name, description, price, stock, image_url) VALUES (?, ?, ?, ?, ?)');
       sampleProducts.forEach(product => {
-        stmt.run(product.name, product.description, product.price, product.stock, product.image_url);
+        db.run(
+          'INSERT INTO products (name, description, price, stock, image_url) VALUES (?, ?, ?, ?, ?)',
+          [product.name, product.description, product.price, product.stock, product.image_url]
+        );
       });
-      stmt.finalize();
       console.log('示例產品插入完成');
     }
   });
