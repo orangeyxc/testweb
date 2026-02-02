@@ -55,6 +55,7 @@ export DB_HOST=localhost
 export DB_USER=root
 export DB_PASSWORD=your_password
 export DB_NAME=shopping
+export DB_PORT=3306
 ```
 
 ### 3. 啟動服務器

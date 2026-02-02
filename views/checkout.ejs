@@ -45,15 +45,15 @@
               <tr>
                 <td><%= item.name %></td>
                 <td><%= item.quantity %></td>
-                <td>HK$ <%= item.price.toFixed(2) %></td>
-                <td>HK$ <%= subtotal.toFixed(2) %></td>
+                <td>HK$ <%= Number(item.price).toFixed(2) %></td>
+                <td>HK$ <%= Number(subtotal).toFixed(2) %></td>
               </tr>
             <% }); %>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="3"><strong>總計:</strong></td>
-              <td><strong>HK$ <%= total.toFixed(2) %></strong></td>
+              <td><strong>HK$ <%= Number(total).toFixed(2) %></strong></td>
             </tr>
           </tfoot>
         </table>

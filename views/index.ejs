@@ -44,7 +44,7 @@
             <div class="product-info">
               <h3><%= product.name %></h3>
               <p class="product-description"><%= product.description %></p>
-              <p class="product-price">HK$ <%= product.price.toFixed(2) %></p>
+              <p class="product-price">HK$ <%= Number(product.price).toFixed(2) %></p>
               <p class="product-stock">庫存: <%= product.stock %></p>
               <div class="product-actions">
                 <a href="/product/<%= product.id %>" class="btn btn-secondary">查看詳情</a>
