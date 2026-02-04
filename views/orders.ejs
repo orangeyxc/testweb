@@ -43,7 +43,7 @@
             <div class="order-body">
               <p><strong>訂單日期:</strong> <%= new Date(order.created_at).toLocaleString('zh-HK') %></p>
               <p><strong>產品:</strong> <%= order.products %></p>
-              <p><strong>總金額:</strong> HK$ <%= order.total_amount.toFixed(2) %></p>
+              <p><strong>總金額:</strong> HK$ <%= Number(order.total_amount).toFixed(2) %></p>
             </div>
           </div>
         <% }); %>

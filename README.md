@@ -36,7 +36,7 @@
 ## 技術棧
 
 - **後端**: Node.js + Express
-- **數據庫**: SQLite3
+- **數據庫**: MySQL
 - **模板引擎**: EJS
 - **身份驗證**: JWT + bcryptjs
 - **前端**: HTML5 + CSS3 + JavaScript
@@ -48,12 +48,22 @@
 npm install
 ```
 
-### 2. 啟動服務器
+### 2. 設定 MySQL
+建立資料庫並設定連線資訊：
+```bash
+export DB_HOST=localhost
+export DB_USER=root
+export DB_PASSWORD=your_password
+export DB_NAME=shopping
+export DB_PORT=3306
+```
+
+### 3. 啟動服務器
 ```bash
 npm start
 ```
 
-### 3. 訪問網站
+### 4. 訪問網站
 打開瀏覽器訪問: `http://localhost:3000`
 
 ## 使用說明
@@ -152,7 +162,7 @@ npm start
 
 ## 注意事項
 
-- 首次運行會自動創建數據庫同插入示例產品
+- 首次運行會自動創建數據庫表並插入示例產品
 - JWT Secret 建議喺生產環境中使用環境變量
 - 信用卡資訊僅用於演示，實際應用需要整合真實支付網關
 - 建議喺生產環境中使用 HTTPS
