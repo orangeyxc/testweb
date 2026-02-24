@@ -1,4 +1,5 @@
 // 主服務器檔案 (Main server file)
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');

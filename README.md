@@ -162,57 +162,116 @@ EXIT;
 
 ### 第三步：下载项目代码
 
-如果你已经有代码文件夹，直接进入该目录即可。  
-如果需要从 GitHub 克隆：
+**方式一：使用 Git 克隆（推荐）**
+
+如果你已安装 Git，打开终端（命令提示符 / Terminal），执行：
 
 ```bash
 git clone https://github.com/orangeyxc/testweb.git
 cd testweb
 ```
 
+**方式二：下载 ZIP 压缩包**
+
+1. 打开 https://github.com/orangeyxc/testweb
+2. 点击绿色按钮 **"Code"** → 选择 **"Download ZIP"**
+3. 解压下载的 ZIP 文件到你想要存放项目的位置（例如 `C:\Projects\testweb` 或 `~/Projects/testweb`）
+4. 打开终端，进入解压后的项目文件夹：
+
+   **Windows（命令提示符）：**
+   ```cmd
+   cd C:\Projects\testweb
+   ```
+
+   **macOS / Linux（终端）：**
+   ```bash
+   cd ~/Projects/testweb
+   ```
+
+> 💡 **确认你在正确目录**：执行 `ls`（macOS/Linux）或 `dir`（Windows），应能看到 `server.js`、`package.json` 等文件。
+
 ---
 
 ### 第四步：安装项目依赖
 
-在项目根目录下运行：
+确保你当前在项目根目录（能看到 `package.json` 文件的那一层），然后运行：
 
 ```bash
 npm install
 ```
 
-这会自动安装所有必要的依赖包（Express、EJS、MySQL2 等）。
+这会自动下载并安装所有必要的依赖包（Express、EJS、MySQL2、dotenv 等）。
+
+正常完成后你会看到类似如下输出：
+
+```
+added 103 packages, audited 104 packages in 5s
+found 0 vulnerabilities
+```
+
+> ⚠️ 如果报错 `npm: command not found`，说明 Node.js 未正确安装或未添加到 PATH，请重新安装 Node.js 并重启终端。
 
 ---
 
 ### 第五步：配置数据库连接
 
-在启动前，需要告诉项目你的 MySQL 连接信息。
+项目通过一个 **`.env` 配置文件** 读取你的 MySQL 连接信息，只需创建一次，之后每次启动都会自动加载。
 
-**Windows（命令提示符）：**
+**1. 在项目根目录创建 `.env` 文件**
+
+将以下内容复制，粘贴到项目根目录下新建的 `.env` 文件中（文件名就是 `.env`，没有扩展名）：
+
+```
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=你的MySQL密码
+DB_NAME=shopping
+DB_PORT=3306
+```
+
+**将 `你的MySQL密码` 替换为你安装 MySQL 时设置的 root 密码。**
+
+> 💡 如果安装 MySQL 时没有设置密码，则将该行改为 `DB_PASSWORD=`（等号后留空）。
+
+**2. 如何创建 `.env` 文件？**
+
+**Windows（命令提示符，在项目根目录执行）：**
 
 ```cmd
-set DB_HOST=localhost
-set DB_USER=root
-set DB_PASSWORD=你的MySQL密码
-set DB_NAME=shopping
-set DB_PORT=3306
+copy .env.example .env
+notepad .env
 ```
 
-**macOS / Linux（终端）：**
+在记事本中将 `你的MySQL密码` 替换为实际密码，保存并关闭。
+
+**macOS / Linux（终端，在项目根目录执行）：**
 
 ```bash
-export DB_HOST=localhost
-export DB_USER=root
-export DB_PASSWORD=你的MySQL密码
-export DB_NAME=shopping
-export DB_PORT=3306
+cp .env.example .env
+nano .env
 ```
 
-> 💡 **提示**：如果你的 MySQL root 没有密码，`DB_PASSWORD` 留空即可（`set DB_PASSWORD=`）
+修改密码后按 `Ctrl+X`，再按 `Y`，最后按 `Enter` 保存。
+
+**3. 验证配置文件**
+
+完成后，`.env` 文件内容应类似：
+
+```
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=MyPassword123
+DB_NAME=shopping
+DB_PORT=3306
+```
+
+> 🔒 **注意**：`.env` 文件包含数据库密码，**请勿**将它提交到 Git 或分享给他人。（该文件已在 `.gitignore` 中被忽略，不会被意外上传。）
 
 ---
 
 ### 第六步：启动网站
+
+在项目根目录的终端中运行：
 
 ```bash
 npm start
@@ -226,6 +285,11 @@ npm start
 示例产品插入完成
 购物网站运行中，访问地址: http://localhost:3000
 ```
+
+> ⚠️ 如果看到 `数据库连接失败`，请检查：
+> 1. MySQL 服务是否已启动（见第二步中的验证方法）
+> 2. `.env` 文件中的密码是否正确
+> 3. 数据库 `shopping` 是否已创建（见第二步末尾的"创建项目所需的数据库"）
 
 ---
 
@@ -314,13 +378,13 @@ npm start
 ## 🛠️ 常见问题
 
 **Q：启动时报错 `数据库连接失败`**  
-A：请检查 MySQL 是否正在运行，以及 `DB_PASSWORD`、`DB_NAME` 等环境变量是否配置正确。确认数据库 `shopping` 已创建。
+A：请检查：1) MySQL 服务是否正在运行；2) 项目根目录中的 `.env` 文件是否存在且密码正确；3) 数据库 `shopping` 是否已创建（参见第二步末尾）。
 
 **Q：报错 `Cannot find module`**  
-A：请先运行 `npm install` 安装依赖。
+A：请先运行 `npm install` 安装依赖。确认你在项目根目录（能看到 `package.json` 的那一层）。
 
 **Q：端口 3000 被占用**  
-A：可设置环境变量更改端口：`set PORT=3001`（Windows）或 `export PORT=3001`（Mac/Linux），再重新启动。
+A：在 `.env` 文件中添加一行 `PORT=3001`，保存后重新运行 `npm start`。
 
 **Q：打开股票预测时无需登录吗？**  
 A：是的，股票预测中心无需登录，直接访问 http://localhost:3000/stocks 即可使用。购物功能（加入购物车、下单）需要先注册并登录。
