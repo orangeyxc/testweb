@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= prediction.name %> (<%= prediction.symbol %>) - 股票預測分析</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/stocks.css">
+</head>
+<body>
+  <header>
+    <nav class="navbar stock-navbar">
+      <div class="container">
+        <a href="/stocks" class="logo stock-logo">📊 股票預測中心</a>
+        <ul class="nav-menu">
+          <li><a href="/stocks">全部股票</a></li>
+          <li><a href="/stocks?market=SHSE">上海A股</a></li>
+          <li><a href="/stocks?market=SZSE">深圳A股</a></li>
+          <li><a href="/stocks?market=HKEX">香港股市</a></li>
+          <li><a href="/">🛒 商店</a></li>
+          <% if (user) { %>
+            <li><a href="/logout">登出 (<%= user.username %>)</a></li>
+          <% } else { %>
+            <li><a href="/login">登入</a></li>
+          <% } %>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- 返回按鈕 (Back button) -->
+    <div class="back-nav">
+      <a href="/stocks" class="back-link">← 返回股票列表</a>
+    </div>
+
+    <!-- 股票標題區 (Stock header) -->
+    <div class="detail-header">
+      <div class="detail-title">
+        <div class="detail-badges">
+          <span class="stock-market-badge <%= prediction.market.toLowerCase() %>"><%= prediction.market %></span>
+          <span class="stock-symbol-large"><%= prediction.symbol %></span>
+        </div>
+        <h1 class="detail-name"><%= prediction.name %></h1>
+        <span class="sector-tag"><%= prediction.sector %></span>
+      </div>
+      <div class="detail-price-block">
+        <div class="detail-price"><%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= prediction.currentPrice.toFixed(2) %></div>
+        <div class="detail-change <%= prediction.change >= 0 ? 'up' : 'down' %>">
+          <%= prediction.change >= 0 ? '▲' : '▼' %>
+          <%= Math.abs(prediction.change).toFixed(2) %>
+          (<%= Math.abs(prediction.changePercent).toFixed(2) %>%)
+        </div>
+        <div class="detail-update-time">📅 分析時間：<%= new Date().toLocaleString('zh-HK') %></div>
+      </div>
+    </div>
+
+    <!-- 核心決策卡片 (Core decision card) -->
+    <div class="decision-card rec-bg-<%= prediction.recommendation.replace(/\s/g,'') %>">
+      <div class="decision-main">
+        <div class="decision-rec">
+          <span class="rec-emoji"><%= prediction.recEmoji %></span>
+          <span class="rec-text"><%= prediction.recommendation %></span>
+        </div>
+        <div class="decision-meta">
+          <div class="decision-stat">
+            <div class="stat-value success-rate-value"><%= prediction.successRate %>%</div>
+            <div class="stat-label">預測成功率</div>
+          </div>
+          <div class="decision-stat">
+            <div class="stat-value score-value"><%= prediction.overallScore %>/100</div>
+            <div class="stat-label">綜合評分</div>
+          </div>
+          <div class="decision-stat">
+            <div class="stat-value <%= prediction.targetReturn >= 0 ? 'profit-value' : 'loss-value' %>">
+              <%= prediction.targetReturn >= 0 ? '+' : '' %><%= prediction.targetReturn %>%
+            </div>
+            <div class="stat-label">預期回報率</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 進度條 (Score bar) -->
+      <div class="score-bar-section">
+        <div class="score-label">綜合評分</div>
+        <div class="score-bar-container">
+          <div class="score-bar-fill" style="width: <%= prediction.overallScore %>%"></div>
+          <span class="score-bar-text"><%= prediction.overallScore %>分</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- 左欄 (Left column) -->
+      <div class="detail-left">
+
+        <!-- 投資決策建議 (Investment decision advice) -->
+        <div class="detail-card">
+          <h2 class="card-title">💡 投資決策建議</h2>
+          <div class="advice-grid">
+            <div class="advice-item">
+              <div class="advice-label">📍 建議入場價</div>
+              <div class="advice-value"><%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= prediction.currentPrice.toFixed(2) %></div>
+              <div class="advice-note">以現價附近分批買入</div>
+            </div>
+            <div class="advice-item target">
+              <div class="advice-label">🎯 目標價位</div>
+              <div class="advice-value green"><%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= prediction.targetPrice.toFixed(2) %></div>
+              <div class="advice-note">預期漲幅 +<%= Math.abs(prediction.targetReturn).toFixed(1) %>%</div>
+            </div>
+            <div class="advice-item stoploss">
+              <div class="advice-label">🛡️ 止損價位</div>
+              <div class="advice-value red"><%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= prediction.stopLossPrice.toFixed(2) %></div>
+              <div class="advice-note">最大虧損 <%= prediction.stopLossPercent.toFixed(1) %>%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 預計獲利計算 (Estimated profit calculation) -->
+        <div class="detail-card">
+          <h2 class="card-title">💰 預計獲利試算</h2>
+          <div class="profit-calc">
+            <div class="profit-header">
+              <span>假設買入 <%= prediction.sharesExample %> 股</span>
+              <span class="invest-amount">
+                投入：<%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= prediction.investAmount.toLocaleString() %>
+              </span>
+            </div>
+            <div class="profit-scenarios">
+              <div class="scenario optimistic">
+                <div class="scenario-icon">🚀</div>
+                <div class="scenario-label">樂觀情景（達目標價）</div>
+                <div class="scenario-return">+<%= prediction.targetReturn.toFixed(1) %>%</div>
+                <div class="scenario-amount green">
+                  +<%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= Math.abs(prediction.profitAmount).toLocaleString() %>
+                </div>
+              </div>
+              <div class="scenario pessimistic">
+                <div class="scenario-icon">🛡️</div>
+                <div class="scenario-label">悲觀情景（觸及止損）</div>
+                <div class="scenario-return"><%= prediction.stopLossPercent.toFixed(1) %>%</div>
+                <div class="scenario-amount red">
+                  -<%= prediction.currency === 'HKD' ? 'HK$' : '¥' %><%= Math.abs(prediction.riskAmount).toLocaleString() %>
+                </div>
+              </div>
+            </div>
+            <div class="risk-reward">
+              <span>風險回報比：</span>
+              <strong>1 : <%= (Math.abs(prediction.profitAmount) / Math.max(1, Math.abs(prediction.riskAmount))).toFixed(2) %></strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 技術指標 (Technical indicators) -->
+        <div class="detail-card">
+          <h2 class="card-title">📈 技術指標</h2>
+          <div class="tech-indicators">
+            <div class="tech-item">
+              <span class="tech-name">RSI (14日)</span>
+              <div class="tech-bar-wrap">
+                <div class="tech-bar">
+                  <div class="tech-bar-fill <%= prediction.rsi > 70 ? 'overbought' : prediction.rsi < 30 ? 'oversold' : 'normal' %>"
+                       style="width: <%= prediction.rsi %>%"></div>
+                </div>
+                <span class="tech-value"><%= prediction.rsi %></span>
+              </div>
+              <span class="tech-signal <%= prediction.rsi > 70 ? 'signal-sell' : prediction.rsi < 30 ? 'signal-buy' : 'signal-neutral' %>">
+                <%= prediction.rsi > 70 ? '超買' : prediction.rsi < 30 ? '超賣(買入機會)' : '中性' %>
+              </span>
+            </div>
+            <div class="tech-item">
+              <span class="tech-name">MACD信號</span>
+              <span class="tech-signal-text <%= prediction.macdSignal.includes('金叉') ? 'signal-buy' : 'signal-sell' %>">
+                <%= prediction.macdSignal %>
+              </span>
+            </div>
+            <div class="tech-item">
+              <span class="tech-name">MA20均線</span>
+              <span class="tech-signal-text <%= prediction.ma20Trend.includes('上方') ? 'signal-buy' : 'signal-sell' %>">
+                <%= prediction.ma20Trend %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右欄 (Right column) -->
+      <div class="detail-right">
+
+        <!-- 因素分析 (Factor analysis) -->
+        <div class="detail-card">
+          <h2 class="card-title">🔬 多維度因素分析</h2>
+          <% prediction.factors.forEach(factor => { %>
+            <div class="factor-item">
+              <div class="factor-header">
+                <span class="factor-name"><%= factor.name %></span>
+                <div class="factor-score-badge <%= factor.positive ? 'positive' : 'negative' %>">
+                  <%= factor.score %>分
+                </div>
+              </div>
+              <div class="factor-bar">
+                <div class="factor-bar-fill <%= factor.positive ? 'bar-positive' : 'bar-negative' %>"
+                     style="width: <%= factor.score %>%"></div>
+              </div>
+              <div class="factor-detail"><%= factor.detail %></div>
+            </div>
+          <% }); %>
+        </div>
+
+        <!-- 行業趨勢 (Sector trend) -->
+        <div class="detail-card">
+          <h2 class="card-title">🏭 行業趨勢分析</h2>
+          <div class="sector-info">
+            <div class="sector-name"><%= prediction.sector %></div>
+            <div class="sector-outlook outlook-<%= prediction.sectorTrend.outlook.replace(/\s/g,'') %>">
+              前景展望：<strong><%= prediction.sectorTrend.outlook || '中性' %></strong>
+            </div>
+            <% if (prediction.sectorTrend.reason) { %>
+              <div class="sector-reason">📌 <%= prediction.sectorTrend.reason %></div>
+            <% } %>
+            <div class="sector-trend-indicator">
+              <span>行業趨勢強度：</span>
+              <div class="trend-bar">
+                <div class="trend-fill" style="width: <%= Math.min(100, Math.max(0, 50 + prediction.sectorTrend.trend * 300)) %>%"></div>
+              </div>
+              <span><%= prediction.sectorTrend.trend >= 0 ? '+' : '' %><%= (prediction.sectorTrend.trend * 100).toFixed(1) %>%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 相關全球事件 (Related global events) -->
+        <div class="detail-card">
+          <h2 class="card-title">🌍 相關全球事件</h2>
+          <% if (prediction.relevantEvents.length > 0) { %>
+            <% prediction.relevantEvents.forEach(evt => { %>
+              <div class="event-item <%= evt.impact > 0 ? 'event-positive' : 'event-negative' %>">
+                <div class="event-icon"><%= evt.impact > 0 ? '📈' : '📉' %></div>
+                <div class="event-content">
+                  <div class="event-title"><%= evt.event %></div>
+                  <div class="event-impact">
+                    影響：<strong class="<%= evt.impact > 0 ? 'green' : 'red' %>">
+                      <%= evt.impact > 0 ? '+' : '' %><%= (evt.impact * 100).toFixed(0) %>%
+                    </strong>
+                    &nbsp;｜&nbsp;
+                    受影響板塊：<%= evt.affectedSectors.join('、') %>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <p class="no-events">目前無重大相關全球事件</p>
+          <% } %>
+        </div>
+
+        <!-- 風險提示 (Risk warning) -->
+        <div class="detail-card risk-card">
+          <h2 class="card-title">⚠️ 風險提示</h2>
+          <ul class="risk-list">
+            <li>股市有風險，投資需謹慎</li>
+            <li>本分析基於量化模型，不保證預測準確</li>
+            <li>建議分批買入，不宜重倉單一股票</li>
+            <li>請設置止損，嚴格控制風險</li>
+            <li>政策變化可能對股價造成重大影響</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 免責聲明 (Disclaimer) -->
+    <div class="disclaimer">
+      <p>⚠️ <strong>免責聲明：</strong>本平台提供之股票預測分析僅供參考，不構成任何投資建議。股票市場存在風險，投資者應自行判斷並承擔投資風險。過往業績不代表未來表現。</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 股票預測中心. 版權所有. | 數據僅供參考，請自行核實</p>
+    </div>
+  </footer>
+</body>
+</html>

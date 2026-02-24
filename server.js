@@ -5,7 +5,9 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const { db, initializeDatabase } = require('./database');
+const { getAllStocks, predictStock, globalEvents } = require('./stocks');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +23,15 @@ app.set('views', path.join(__dirname, 'views'));
 
 // 初始化數據庫 (Initialize database)
 initializeDatabase();
+
+// 速率限制 (Rate limiting)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(generalLimiter);
 
 // 身份驗證中間件 (Authentication middleware)
 function authenticateToken(req, res, next) {
@@ -385,6 +396,52 @@ app.get('/orders', authenticateToken, (req, res) => {
     
     res.render('orders', { orders, user: req.user });
   });
+});
+
+// ========== 股票預測路由 (Stock Prediction Routes) ==========
+
+// 股票預測首頁 (Stock prediction home)
+app.get('/stocks', (req, res) => {
+  const token = req.cookies.token;
+  let user = null;
+  if (token) {
+    try { user = jwt.verify(token, JWT_SECRET); } catch (e) {}
+  }
+  const stocks = getAllStocks();
+  const market = req.query.market || 'all';
+  const search = req.query.search || '';
+  res.render('stocks', { stocks, user, market, search, globalEvents });
+});
+
+// 股票預測詳情 (Stock prediction detail)
+app.get('/stocks/:symbol', (req, res) => {
+  const token = req.cookies.token;
+  let user = null;
+  if (token) {
+    try { user = jwt.verify(token, JWT_SECRET); } catch (e) {}
+  }
+  const prediction = predictStock(req.params.symbol);
+  if (!prediction) {
+    return res.status(404).render('stocks', {
+      stocks: getAllStocks(), user, market: 'all', search: '', globalEvents,
+      error: '找不到該股票'
+    });
+  }
+  res.render('stock-detail', { prediction, user });
+});
+
+// 股票預測API (Stock prediction API)
+app.get('/api/stocks', (req, res) => {
+  const stocks = getAllStocks();
+  res.json({ success: true, stocks });
+});
+
+app.get('/api/stocks/:symbol', (req, res) => {
+  const prediction = predictStock(req.params.symbol);
+  if (!prediction) {
+    return res.status(404).json({ error: '找不到該股票' });
+  }
+  res.json({ success: true, prediction });
 });
 
 // 啟動伺服器 (Start server)
