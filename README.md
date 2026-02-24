@@ -25,19 +25,138 @@ npm -v
 
 ### 第二步：安装 MySQL 数据库
 
-本项目需要 MySQL 5.7 或以上版本。
+本项目需要 MySQL 8.0 或以上版本（也兼容 5.7）。请根据你的操作系统选择对应的安装方式：
 
-- **Windows**：下载 [MySQL Installer](https://dev.mysql.com/downloads/installer/)，按向导安装
-- **macOS**：推荐使用 [Homebrew](https://brew.sh/)：`brew install mysql`
-- **Linux**：`sudo apt-get install mysql-server`
+---
 
-安装后，启动 MySQL 服务，并记下你设置的 **root 密码**。
+#### 🪟 Windows 安装 MySQL
 
-**创建数据库**（在 MySQL 命令行或 MySQL Workbench 中执行）：
+**1. 下载安装程序**
+
+前往官网下载 MySQL Installer（推荐选"mysql-installer-community"，约 450 MB）：
+
+👉 https://dev.mysql.com/downloads/installer/
+
+> 点击页面底部的 **"No thanks, just start my download."** 可跳过登录直接下载。
+
+**2. 运行安装向导**
+
+双击下载的 `.msi` 文件，按以下步骤操作：
+
+| 步骤 | 选择 |
+|------|------|
+| Setup Type（安装类型） | 选 **"Server only"**（仅安装服务器） |
+| Check Requirements | 点 **"Execute"** 安装缺失组件，再点 **"Next"** |
+| Installation | 点 **"Execute"** 开始安装，完成后点 **"Next"** |
+| Product Configuration | 点 **"Next"** 进入配置 |
+| Type and Networking | 保持默认（Standalone MySQL Server，Port: 3306），点 **"Next"** |
+| Authentication Method | 选第一项 **"Use Strong Password..."**，点 **"Next"** |
+| Accounts and Roles | 在 **"MySQL Root Password"** 和 **"Repeat Password"** 填入你要设的密码（请务必记住！），点 **"Next"** |
+| Windows Service | 保持默认（Start the MySQL Server at System Startup），点 **"Next"** |
+| Apply Configuration | 点 **"Execute"** 应用配置，全部打勾后点 **"Finish"** |
+
+**3. 验证安装**
+
+打开"开始菜单"，搜索并打开 **MySQL 8.0 Command Line Client**，输入你设置的 root 密码，出现 `mysql>` 提示符说明安装成功。
+
+---
+
+#### 🍎 macOS 安装 MySQL
+
+**方式一：使用 Homebrew（推荐，命令行操作）**
+
+如果还没有安装 Homebrew，先在终端执行：
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+然后安装并启动 MySQL：
+
+```bash
+brew install mysql
+brew services start mysql
+```
+
+安装后首次设置 root 密码：
+
+```bash
+mysql_secure_installation
+```
+
+按照提示：
+- 是否设置密码验证插件 → 输入 `y`（回车，推荐启用）
+- 密码强度级别 → 输入 `0`（低，适合本地开发）或 `2`（强，推荐生产环境）
+- 设置 root 新密码 → 输入你的密码（两次）
+- 其余选项全部输入 `y` 回车
+
+**方式二：下载官方 DMG 安装包**
+
+👉 https://dev.mysql.com/downloads/mysql/
+
+下载 macOS 对应的 `.dmg` 文件，双击安装，安装完成后：
+1. 打开"系统设置" → 搜索 **MySQL** → 点击 **"Start MySQL Server"**
+2. 在弹出框中设置并记下 root 密码
+
+**验证安装（在终端执行）：**
+
+```bash
+mysql -u root -p
+```
+
+输入密码后出现 `mysql>` 说明成功。
+
+---
+
+#### 🐧 Linux（Ubuntu / Debian）安装 MySQL
+
+```bash
+# 更新包列表
+sudo apt-get update
+
+# 安装 MySQL
+sudo apt-get install -y mysql-server
+
+# 启动 MySQL 服务
+sudo systemctl start mysql
+sudo systemctl enable mysql   # 设置开机自启
+
+# 设置 root 密码（运行安全配置向导）
+sudo mysql_secure_installation
+```
+
+安全配置向导步骤：
+- 是否启用密码验证 → 输入 `2`（强密码，推荐）或 `0`（低强度，仅限本地开发）
+- 设置 root 密码（输入两次）
+- 删除匿名用户 → `y`
+- 禁止 root 远程登录 → `y`
+- 删除测试数据库 → `y`
+- 重新加载权限表 → `y`
+
+**验证安装：**
+
+```bash
+sudo mysql -u root -p
+```
+
+---
+
+#### 🗄️ 创建项目所需的数据库
+
+安装好 MySQL 并进入 `mysql>` 命令行后（Windows 用 MySQL Command Line Client，macOS/Linux 用终端登录），依次执行以下命令：
 
 ```sql
+-- 创建数据库（使用 UTF-8 编码，支持中文）
 CREATE DATABASE shopping CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 确认创建成功（应在列表中看到 shopping）
+SHOW DATABASES;
+
+-- 退出 MySQL 命令行
+EXIT;
 ```
+
+> ✅ 看到 `Query OK, 1 row affected` 说明数据库创建成功。之后启动项目时，表结构和示例数据会**自动创建**，无需手动操作。
 
 ---
 
