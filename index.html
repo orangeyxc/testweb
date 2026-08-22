@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 综合灵敏度评估系统</title>
+    <style>
+        :root{--bg-color:#0b0d14;--panel-bg:#151828;--primary:#00e5ff;--accent:#ff2a6d;--success:#05d59e;--warning:#ffb86c;--turn:#bd93f9;--text-main:#ffffff;--text-sub:#8a91a8}
+        *{box-sizing:border-box;margin:0;padding:0;user-select:none}
+        body{background-color:var(--bg-color);color:var(--text-main);font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;cursor:crosshair}
+        .hidden{display:none!important}
+        .container{background-color:var(--panel-bg);padding:35px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);text-align:center;max-width:600px;width:100%;border:1px solid rgba(0,229,255,0.2);z-index:100;position:relative}
+        h1{font-size:24px;margin-bottom:10px;color:var(--primary);text-shadow:0 0 10px rgba(0,229,255,0.3)}
+        p.desc{color:var(--text-sub);font-size:14px;margin-bottom:25px;line-height:1.6}
+        .input-group{margin-bottom:15px;text-align:left}
+        .input-group label{display:block;margin-bottom:6px;font-size:13px;color:#ccc}
+        input[type="number"],select{width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid #333;color:#fff;border-radius:6px;font-size:15px;outline:none;cursor:pointer}
+        input[type="number"]:focus,select:focus{border-color:var(--primary)}
+        button{width:100%;padding:14px;background:linear-gradient(45deg,#0088cc,#00e5ff);color:#000;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;margin-top:10px}
+        button:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,229,255,0.4)}
+        #arena-screen{position:absolute;top:0;left:0;width:100vw;height:100vh;background-color:#080a10}
+        #hud{position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:30px;font-size:18px;font-weight:bold;color:var(--primary);background:rgba(0,0,0,0.6);padding:10px 25px;border-radius:30px;border:1px solid #333;z-index:10;pointer-events:none}
+        .stage-title{color:var(--accent)}
+        .target{position:absolute;border-radius:50%;transform:translate(-50%,-50%)}
+        .target-speed{background:radial-gradient(circle,#fff 0%,#00e5ff 60%);box-shadow:0 0 15px #00e5ff}
+        .target-precision{background:radial-gradient(circle,#fff 0%,#ff2a6d 60%);box-shadow:0 0 15px #ff2a6d}
+        .target-tracking{background:radial-gradient(circle,#fff 0%,#05d59e 60%);box-shadow:0 0 20px #05d59e;transition:background 0.1s,box-shadow 0.1s}
+        .tracking-active{background:#fff!important;box-shadow:0 0 30px #fff!important}
+        .turn-zone{position:absolute;top:0;width:80px;height:100vh;background:rgba(189,147,249,0.2);border:1px solid var(--turn);box-shadow:0 0 20px rgba(189,147,249,0.3);z-index:5}
+        .target-turn{background:radial-gradient(circle,#fff 0%,#bd93f9 60%);box-shadow:0 0 15px #bd93f9}
+        #transition-screen{position:absolute;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:50}
+        #transition-text{font-size:28px;color:var(--primary);margin-bottom:20px}
+        #transition-count{font-size:80px;font-weight:bold;color:#fff;text-shadow:0 0 20px var(--primary)}
+        .result-box{background:rgba(0,0,0,0.4);padding:15px;border-radius:8px;margin:15px 0;border:1px dashed var(--primary)}
+        .sens-value{font-size:44px;font-weight:bold;color:var(--primary);margin:5px 0;text-shadow:0 0 15px rgba(0,229,255,0.6)}
+        .stat-bar{display:flex;align-items:center;margin-bottom:10px;font-size:13px}
+        .stat-label{width:110px;text-align:right;margin-right:15px;color:#ccc}
+        .bar-bg{flex:1;height:10px;background:#333;border-radius:5px;overflow:hidden;position:relative}
+        .bar-fill{height:100%;border-radius:5px;transition:width 1s ease-out}
+        .fill-speed{background:#00e5ff}
+        .fill-smooth{background:#05d59e}
+        .fill-prec{background:#ff2a6d}
+        .fill-turn{background:#bd93f9}
+        .stat-val{width:55px;text-align:left;margin-left:15px;font-weight:bold;color:#fff}
+        .advice-list{text-align:left;background:rgba(0,0,0,0.3);padding:15px;border-radius:8px;margin-bottom:15px;border-left:3px solid var(--primary);font-size:13px;line-height:1.6}
+        .advice-item{margin-bottom:6px;color:#eee}
+        .advice-item:last-child{margin-bottom:0}
+        .cmd-text{background:#000;padding:10px;border-radius:4px;font-family:monospace;color:#a5d6a7;margin-top:8px;cursor:pointer}
+    </style>
+</head>
+<body>
+    <div id="setup-screen" class="container">
+        <h1>CS2 综合灵敏度评估系统</h1>
+        <p class="desc">
+            全方位测试：<span style="color:var(--primary)">大拉枪</span> | <span style="color:var(--success)">稳跟枪</span> | <span style="color:var(--accent)">微急停</span> | <span style="color:var(--turn)">极限转身</span><br>
+            <strong style="color:#fff;">包含四维轨迹效率统计的新手引导版。</strong>
+        </p>
+        <div style="display:flex;gap:15px;">
+            <div class="input-group" style="flex:1;">
+                <label>鼠标 DPI：</label>
+                <input type="number" id="dpi-input" value="800" min="100" max="10000">
+            </div>
+            <div class="input-group" style="flex:1;">
+                <label>当前游戏灵敏度：</label>
+                <input type="number" id="sens-input" value="1.0" step="0.01" min="0.01">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>游戏内分辨率比例：</label>
+            <select id="res-input">
+                <option value="16:9">16:9 (原生 1920x1080 / 2K)</option>
+                <option value="4:3">4:3 (拉伸拉满 1280x960等)</option>
+            </select>
+        </div>
+        <button onclick="startSequence()">启动四阶段测试</button>
+    </div>
+    <div id="transition-screen" class="hidden">
+        <div id="transition-text">阶段 1: 动态网格甩枪 (Speed)</div>
+        <div id="transition-count">3</div>
+    </div>
+    <div id="arena-screen" class="hidden">
+        <div id="hud">
+            <div class="stage-title" id="hud-stage">Stage 1: Speed</div>
+            <div>时间: <span id="time-display">15.0</span>s</div>
+            <div>得分: <span id="score-display">0</span></div>
+            <div>锁定效率: <span id="acc-display">100</span>%</div>
+        </div>
+        <div id="target-container"></div>
+    </div>
+    <div id="result-screen" class="container hidden">
+        <h1 style="margin-bottom:5px;">个人专属灵敏度档案</h1>
+        <p class="desc" style="margin-bottom:15px;">基于手部动作效率与全域空间控制的教学反馈。</p>
+        <div>
+            <div class="stat-bar">
+                <div class="stat-label">拉枪速度</div>
+                <div class="bar-bg"><div class="bar-fill fill-speed" id="bar-speed" style="width:0%;"></div></div>
+                <div class="stat-val" id="val-speed">0</div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">跟随平滑度</div>
+                <div class="bar-bg"><div class="bar-fill fill-smooth" id="bar-smooth" style="width:0%;"></div></div>
+                <div class="stat-val" id="val-smooth">0</div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">微调精确率</div>
+                <div class="bar-bg"><div class="bar-fill fill-prec" id="bar-prec" style="width:0%;"></div></div>
+                <div class="stat-val" id="val-prec">0</div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">空间转身能力</div>
+                <div class="bar-bg"><div class="bar-fill fill-turn" id="bar-turn" style="width:0%;"></div></div>
+                <div class="stat-val" id="val-turn">0</div>
+            </div>
+        </div>
+        <div class="result-box">
+            <div class="sens-value" id="final-sens">1.25</div>
+            <p style="font-size:14px;color:#888;">推荐 eDPI: <span id="final-edpi">1000</span></p>
+        </div>
+        <div class="advice-list" id="advice-container"></div>
+        <p style="font-size:12px;color:#ccc;">点击下方代码，去游戏控制台(~)粘贴应用：</p>
+        <div class="cmd-text" id="cmd-box" onclick="copyCmd()">sensitivity 1.25</div>
+        <div id="copy-tip" style="color:var(--primary);font-size:12px;margin-top:5px;height:15px;"></div>
+        <button style="margin-top:10px;background:#333;color:#fff;" onclick="location.reload()">重新测试</button>
+    </div>
+    <script>
+        let currentStage=0,stageTime=15,endTime=0,gameLoopInterval=null,animationFrameId=null;
+        let mouseX=0,mouseY=0,prevMouseX=0,prevMouseY=0;
+        let stageDistance=0,idealDistance=0;
+        let stageTargetSpawns=0,stageTargetHits=0;
+        let trackingTotalTicks=0,trackingFarTicks=0;
+        let userData={dpi:800,currentSens:1.0,resolution:'16:9',scores:{speed:0,tracking:0,precision:0,turn:0},acc:{speedEff:100,trackFarRate:0,precEff:100,turnEff:100}};
+        document.addEventListener('mousemove',(e)=>{
+            mouseX=e.clientX;mouseY=e.clientY;
+            let d=Math.sqrt(Math.pow(mouseX-prevMouseX,2)+Math.pow(mouseY-prevMouseY,2));
+            stageDistance+=d;
+            prevMouseX=mouseX;prevMouseY=mouseY;
+        });
+        const setupScreen=document.getElementById('setup-screen'),transitionScreen=document.getElementById('transition-screen'),arenaScreen=document.getElementById('arena-screen'),targetContainer=document.getElementById('target-container'),resultScreen=document.getElementById('result-screen');
+        function startSequence(){
+            userData.dpi=parseInt(document.getElementById('dpi-input').value)||800;
+            userData.currentSens=parseFloat(document.getElementById('sens-input').value)||1.0;
+            userData.resolution=document.getElementById('res-input').value;
+            setupScreen.classList.add('hidden');
+            nextStage();
+        }
+        function nextStage(){
+            currentStage++;
+            if(currentStage===2){
+                userData.acc.speedEff=stageTargetHits>0?Math.min(100,Math.round((stageTargetHits/Math.max(1,stageTargetHits+(stageTargetSpawns-stageTargetHits)*0.5))*100)):70;
+            }else if(currentStage===3){
+                userData.acc.trackFarRate=trackingTotalTicks>0?Math.round((trackingFarTicks/trackingTotalTicks)*100):0;
+            }else if(currentStage===4){
+                userData.acc.precEff=stageTargetHits>0?Math.min(100,Math.round((stageTargetHits/Math.max(1,stageTargetHits+(stageTargetSpawns-stageTargetHits)*0.6))*100)):70;
+            }else if(currentStage>4){
+                userData.acc.turnEff=stageTargetHits>0?Math.min(100,Math.round((stageTargetHits/Math.max(1,stageTargetSpawns))*100)):50;
+                showResults();
+                return;
+            }
+            arenaScreen.classList.add('hidden');
+            targetContainer.innerHTML='';
+            transitionScreen.classList.remove('hidden');
+            let stageNames=["","阶段 1: 动态网格甩枪 (Speed)","阶段 2: 目标平滑跟随 (Tracking)","阶段 3: 极小范围微调急停 (Precision)","阶段 4: 大角度转身与定位 (Turn & Flick)"];
+            document.getElementById('transition-text').innerText=stageNames[currentStage];
+            let countdown=3;
+            document.getElementById('transition-count').innerText=countdown;
+            let countInterval=setInterval(()=>{
+                countdown--;
+                if(countdown>0)document.getElementById('transition-count').innerText=countdown;
+                else{clearInterval(countInterval);transitionScreen.classList.add('hidden');startCurrentStage();}
+            },1000);
+        }
+        function startCurrentStage(){
+            arenaScreen.classList.remove('hidden');
+            let stageNamesShort=["","Stage 1: Speed","Stage 2: Smoothness","Stage 3: Precision","Stage 4: Turn & Flick"];
+            document.getElementById('hud-stage').innerText=stageNamesShort[currentStage];
+            document.getElementById('score-display').innerText="0";
+            document.getElementById('acc-display').innerText="100";
+            stageDistance=0;idealDistance=0;stageTargetSpawns=0;stageTargetHits=0;
+            prevMouseX=mouseX;prevMouseY=mouseY;
+            endTime=Date.now()+(stageTime*1000);
+            if(currentStage===1)initStageSpeed();
+            else if(currentStage===2)initStageTracking();
+            else if(currentStage===3)initStagePrecision();
+            else if(currentStage===4)initStageTurn();
+            gameLoopInterval=setInterval(()=>{
+                let timeLeft=Math.max(0,(endTime-Date.now())/1000);
+                document.getElementById('time-display').innerText=timeLeft.toFixed(1);
+                if(currentStage===1||currentStage===3||currentStage===4){
+                    let liveEff=stageTargetHits>0?Math.min(100,Math.round((stageTargetHits/Math.max(1,stageTargetHits+(stageTargetSpawns-stageTargetHits)*0.5))*100)):100;
+                    document.getElementById('acc-display').innerText=liveEff;
+                }else if(currentStage===2){
+                    let inRate=trackingTotalTicks>0?Math.round((userData.scores.tracking/trackingTotalTicks)*100):100;
+                    document.getElementById('acc-display').innerText=inRate;
+                }
+                if(timeLeft<=0){
+                    clearInterval(gameLoopInterval);
+                    if(animationFrameId)cancelAnimationFrame(animationFrameId);
+                    nextStage();
+                }
+            },50);
+        }
+        function initStageSpeed(){for(let i=0;i<3;i++)spawnSpeedTarget();}
+        function spawnSpeedTarget(){
+            stageTargetSpawns++;
+            const t=document.createElement('div');
+            t.className='target target-speed';
+            const size=70;
+            t.style.width=size+'px';t.style.height=size+'px';
+            const maxX=window.innerWidth-size,maxY=window.innerHeight-size;
+            let tx=(Math.random()*(maxX-100)+50),ty=(Math.random()*(maxY-150)+100);
+            t.style.left=tx+'px';t.style.top=ty+'px';
+            let expireTimer=setTimeout(()=>{if(t.parentNode){t.remove();spawnSpeedTarget();}},1800);
+            t.addEventListener('mouseenter',()=>{
+                clearTimeout(expireTimer);
+                stageTargetHits++;
+                userData.scores.speed++;
+                document.getElementById('score-display').innerText=userData.scores.speed;
+                t.remove();
+                spawnSpeedTarget();
+            });
+            targetContainer.appendChild(t);
+        }
+        let trackTarget=null,tX=window.innerWidth/2,tY=window.innerHeight/2,trackTime=0;
+        function initStageTracking(){
+            trackTarget=document.createElement('div');
+            trackTarget.className='target target-tracking';
+            const size=65;
+            trackTarget.style.width=size+'px';trackTarget.style.height=size+'px';
+            targetContainer.appendChild(trackTarget);
+            tX=window.innerWidth/2;tY=window.innerHeight/2;
+            trackingTotalTicks=0;trackingFarTicks=0;
+            trackingLoop();
+        }
+        function trackingLoop(){
+            trackTime+=0.0085;
+            tX=window.innerWidth/2+Math.sin(trackTime*1.2)*(window.innerWidth*0.2)+Math.cos(trackTime*1.8)*50;
+            tY=window.innerHeight/2+Math.cos(trackTime*0.9)*(window.innerHeight*0.15)+Math.sin(trackTime*1.3)*30;
+            trackTarget.style.left=tX+'px';trackTarget.style.top=tY+'px';
+            const dist=Math.sqrt(Math.pow(mouseX-tX,2)+Math.pow(mouseY-tY,2));
+            trackingTotalTicks++;
+            if(dist<35){
+                userData.scores.tracking++;
+                trackTarget.classList.add('tracking-active');
+            }else{
+                trackTarget.classList.remove('tracking-active');
+                if(dist>60)trackingFarTicks++;
+            }
+            if(trackingTotalTicks%5===0)document.getElementById('score-display').innerText=Math.floor(userData.scores.tracking/5);
+            animationFrameId=requestAnimationFrame(trackingLoop);
+        }
+        let precLastX=window.innerWidth/2,precLastY=window.innerHeight/2;
+        function initStagePrecision(){
+            precLastX=window.innerWidth/2;precLastY=window.innerHeight/2;
+            spawnPrecisionTarget();
+        }
+        function spawnPrecisionTarget(){
+            stageTargetSpawns++;
+            const t=document.createElement('div');
+            t.className='target target-precision';
+            const size=10;
+            t.style.width=size+'px';t.style.height=size+'px';
+            let angle=Math.random()*Math.PI*2;
+            let distance=15+Math.random()*60;
+            let nextX=precLastX+Math.cos(angle)*distance;
+            let nextY=precLastY+Math.sin(angle)*distance;
+            if(nextX<window.innerWidth*0.2||nextX>window.innerWidth*0.8||nextY<window.innerHeight*0.2||nextY>window.innerHeight*0.8){
+                nextX=window.innerWidth/2;nextY=window.innerHeight/2;
+            }
+            t.style.left=nextX+'px';t.style.top=nextY+'px';
+            precLastX=nextX;precLastY=nextY;
+            let expireTimer=setTimeout(()=>{if(t.parentNode){t.remove();spawnPrecisionTarget();}},1500);
+            t.addEventListener('mouseenter',()=>{
+                clearTimeout(expireTimer);
+                stageTargetHits++;
+                userData.scores.precision++;
+                document.getElementById('score-display').innerText=userData.scores.precision;
+                t.remove();
+                spawnPrecisionTarget();
+            });
+            targetContainer.appendChild(t);
+        }
+        function initStageTurn(){spawnTurnZone();}
+        function spawnTurnZone(){
+            let isLeft=Math.random()>0.5;
+            let zone=document.createElement('div');
+            zone.className='turn-zone';
+            zone.style.left=isLeft?'0':'calc(100vw - 80px)';
+            zone.addEventListener('mouseenter',()=>{
+                zone.remove();
+                spawnTurnTarget(isLeft);
+            });
+            targetContainer.appendChild(zone);
+        }
+        function spawnTurnTarget(wasLeft){
+            stageTargetSpawns++;
+            const t=document.createElement('div');
+            t.className='target target-turn';
+            const size=35;
+            t.style.width=size+'px';t.style.height=size+'px';
+            let targetX;
+            if(wasLeft){targetX=window.innerWidth*0.75+Math.random()*(window.innerWidth*0.15);}
+            else{targetX=window.innerWidth*0.10+Math.random()*(window.innerWidth*0.15);}
+            let targetY=window.innerHeight*0.3+Math.random()*(window.innerHeight*0.4);
+            t.style.left=targetX+'px';t.style.top=targetY+'px';
+            let expireTimer=setTimeout(()=>{if(t.parentNode){t.remove();spawnTurnZone();}},2000);
+            t.addEventListener('mouseenter',()=>{
+                clearTimeout(expireTimer);
+                stageTargetHits++;
+                userData.scores.turn++;
+                document.getElementById('score-display').innerText=userData.scores.turn;
+                t.remove();
+                spawnTurnZone();
+            });
+            targetContainer.appendChild(t);
+        }
+        function showResults(){
+            arenaScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            const s_speed=userData.scores.speed,s_track=Math.floor(userData.scores.tracking/5),s_prec=userData.scores.precision,s_turn=userData.scores.turn;
+            document.getElementById('val-speed').innerText=s_speed;
+            document.getElementById('bar-speed').style.width=Math.min(100,(s_speed/35)*100)+'%';
+            document.getElementById('val-smooth').innerText=s_track;
+            document.getElementById('bar-smooth').style.width=Math.min(100,(s_track/100)*100)+'%';
+            document.getElementById('val-prec').innerText=s_prec;
+            document.getElementById('bar-prec').style.width=Math.min(100,(s_prec/25)*100)+'%';
+            document.getElementById('val-turn').innerText=s_turn;
+            document.getElementById('bar-turn').style.width=Math.min(100,(s_turn/12)*100)+'%';
+            let user_eDPI=userData.dpi*userData.currentSens;
+            let base_eDPI=user_eDPI;
+            let advices=[];
+            if(user_eDPI>1200){base_eDPI=1000+(user_eDPI-1000)*0.35;}
+            else if(user_eDPI<700){base_eDPI=800-(800-user_eDPI)*0.35;}
+            let multiplier=1.0;
+            if(s_speed>28&&userData.acc.speedEff<65){
+                multiplier*=0.93;
+                advices.push("检测到手腕甩枪过冲，多余滑动较多，建议略微降低灵敏度以增加拉枪容错。");
+            }else if(s_speed<18){
+                multiplier*=1.05;
+                advices.push("检测到大范围拉枪效率偏低，建议适当提高灵敏度，帮助减轻大幅摆臂负担。");
+            }
+            if(userData.acc.trackFarRate>40){
+                let pullTarget=900;
+                base_eDPI=base_eDPI*0.7+pullTarget*0.3;
+                multiplier*=0.94;
+                advices.push("跟枪时准星频繁脱离目标，说明当前灵敏度超出控制极限，系统已温和引导向中庸稳定区间。");
+            }else if(s_track<45){
+                multiplier*=1.04;
+                advices.push("手臂跟枪存在卡顿、吃力感，适度提高灵敏度能让追踪移动目标更加平滑。");
+            }
+            if(userData.acc.precEff<60||s_prec<10){
+                multiplier*=0.95;
+                advices.push("极小范围微调存在滑动溢出，降低灵敏度有助于强化急停定位的爆头精度。");
+            }
+            if(s_turn<6){
+                multiplier*=1.08;
+                advices.push("转身测试得分过低，推测桌面空间受限或灵敏度不足以支撑180度拉扯，已强制上调基准以保障空间机动性。");
+            }else if(s_turn>10){
+                advices.push("大角度空间定位优秀，转身控枪游刃有余。");
+            }
+            if(userData.resolution==='4:3'){
+                multiplier*=0.96;
+                advices.push("针对 4:3 画面拉伸带来的横向视觉加速，已自动应用补偿以抑制视觉过快感。");
+            }
+            let final_eDPI=base_eDPI*multiplier;
+            if(final_eDPI<600)final_eDPI=600;
+            if(final_eDPI>1500)final_eDPI=1500;
+            let final_sens=(final_eDPI/userData.dpi).toFixed(3);
+            document.getElementById('final-sens').innerText=final_sens;
+            document.getElementById('final-edpi').innerText=Math.round(final_eDPI);
+            document.getElementById('cmd-box').innerText=`sensitivity ${final_sens}`;
+            const adviceContainer=document.getElementById('advice-container');
+            adviceContainer.innerHTML='';
+            advices.forEach(item=>{
+                const div=document.createElement('div');
+                div.className='advice-item';
+                div.innerText='• '+item;
+                adviceContainer.appendChild(div);
+            });
+        }
+        function copyCmd(){
+            navigator.clipboard.writeText(document.getElementById('cmd-box').innerText).then(()=>{
+                document.getElementById('copy-tip').innerText="已复制，去游戏控制台(~)粘贴！";
+            });
+        }
+    </script>
+</body>
+</html>
