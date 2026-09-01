@@ -18,7 +18,6 @@
             --prec: #ef4444;
             --flick: #8b5cf6;
             
-            /* 准星变量 */
             --ch-color: rgba(0, 255, 0, 1);
             --ch-len: 8px;
             --ch-thick: 2px;
@@ -32,13 +31,12 @@
         body { background: radial-gradient(circle at center, #151e32 0%, #0b0f19 100%); color: var(--text-main); font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
         
-        /* 玻璃拟态卡片 */
         .container { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 36px 40px; border-radius: 16px; box-shadow: 0 24px 48px rgba(0,0,0,0.5); text-align: center; max-width: 580px; width: 100%; border: 1px solid var(--border-glass); z-index: 100; position: relative; max-height: 95vh; overflow-y: auto; }
         .container::-webkit-scrollbar { width: 4px; }
         .container::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 2px; }
         
         h1 { font-size: 24px; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.5px; }
-        p.desc { color: var(--text-sub); font-size: 13px; margin-bottom: 28px; }
+        p.desc { color: var(--text-sub); font-size: 13px; margin-bottom: 28px; line-height: 1.5; }
         
         .row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
         .input-group { flex: 1; text-align: left; min-width: 140px; }
@@ -52,16 +50,17 @@
         
         button { width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; margin-top: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(59,130,246,0.2); }
         button.btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); box-shadow: none; }
+        button.btn-danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
         button:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(59,130,246,0.4); }
         button.btn-secondary:hover { background: rgba(255,255,255,0.1); box-shadow: none; }
+        button.btn-danger:hover { background: rgba(239,68,68,0.2); box-shadow: none; }
         
-        /* 竞技场与 HUD */
         #arena-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-base); cursor: none; }
         #target-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: center; transition: transform 0.3s; }
         #hud { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 32px; font-size: 14px; font-weight: 600; color: #fff; background: var(--bg-glass); backdrop-filter: blur(8px); padding: 14px 32px; border-radius: 30px; border: 1px solid var(--border-glass); z-index: 10; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #esc-hint { position: absolute; top: 24px; left: 24px; font-size: 13px; color: var(--text-sub); background: rgba(0,0,0,0.4); padding: 8px 16px; border-radius: 8px; z-index: 10; border: 1px solid var(--border-glass); }
         .stage-title { color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         
-        /* 目标元素 */
         .target { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; cursor: none; }
         .target-speed { background: var(--speed); box-shadow: 0 0 20px rgba(59,130,246,0.5); }
         .target-precision { background: var(--prec); box-shadow: 0 0 15px rgba(239,68,68,0.5); }
@@ -74,12 +73,13 @@
         .turn-zone.left { left: 0; background: linear-gradient(to left, rgba(139,92,246,0.1), transparent); border-left: none; border-right: 2px solid var(--flick); }
         .target-turn { background: var(--flick); box-shadow: 0 0 20px rgba(139,92,246,0.5); }
         
-        /* 过场动画 */
-        #transition-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-base); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; cursor: none; }
-        #transition-text { font-size: 26px; color: var(--text-main); margin-bottom: 24px; font-weight: 600; letter-spacing: 1px; }
-        #transition-count { font-size: 80px; font-weight: 800; color: var(--primary); text-shadow: 0 0 30px rgba(59,130,246,0.5); }
+        #tutorial-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-base); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; }
+        #tut-title { font-size: 32px; color: var(--primary); margin-bottom: 16px; font-weight: 700; letter-spacing: 1px; }
+        #tut-desc-zh { font-size: 16px; color: var(--text-main); margin-bottom: 8px; font-weight: 500; }
+        #tut-desc-en { font-size: 14px; color: var(--text-sub); margin-bottom: 32px; font-style: italic; }
         
-        /* 结果展示 */
+        #pause-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.8); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; }
+
         .result-box { background: rgba(0,0,0,0.3); padding: 24px; border-radius: 12px; margin: 24px 0; border: 1px solid var(--border-glass); }
         .sens-value { font-size: 46px; font-weight: 800; color: var(--primary); margin: 8px 0; letter-spacing: -1px; text-shadow: 0 0 20px rgba(59,130,246,0.4); }
         .stat-bar { display: flex; align-items: center; margin-bottom: 14px; font-size: 13px; font-weight: 500; }
@@ -95,7 +95,6 @@
         .cmd-text { background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; color: #34d399; margin-top: 10px; cursor: pointer; border: 1px solid var(--border-glass); font-weight: 600; font-size: 14px; transition: background 0.2s; }
         .cmd-text:hover { background: rgba(16,185,129,0.1); }
         
-        /* 准星渲染 */
         #crosshair-wrapper { position: fixed; top: -100px; left: -100px; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); }
         #custom-crosshair { position: relative; transition: margin 0.05s ease-out; transform-origin: center; }
         .ch-part { position: absolute; background: var(--ch-color); border: var(--ch-out) solid var(--ch-out-color); }
@@ -105,14 +104,12 @@
         .ch-l { height: var(--ch-thick); width: var(--ch-len); top: 50%; left: 50%; transform: translate(calc(-100% - var(--ch-gap)), -50%); }
         .ch-r { height: var(--ch-thick); width: var(--ch-len); top: 50%; left: 50%; transform: translate(var(--ch-gap), -50%); }
 
-        /* 准星侧边栏 */
         #crosshair-settings { position: fixed; right: -420px; top: 0; width: 380px; height: 100vh; background: var(--bg-glass); backdrop-filter: blur(24px); border-left: 1px solid var(--border-glass); padding: 30px 24px; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; overflow-y: auto; box-shadow: -10px 0 40px rgba(0,0,0,0.6); }
         #crosshair-settings.open { right: 0; }
         .ch-preview-box { width: 100%; height: 140px; background: #1e293b; border-radius: 12px; position: relative; margin-bottom: 24px; overflow: hidden; border: 1px solid var(--border-glass); background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%230f172a"/></svg>'); }
         .close-ch { position: absolute; top: 20px; right: 24px; cursor: pointer; color: var(--text-sub); font-size: 22px; transition: color 0.2s; }
         .close-ch:hover { color: #fff; }
         
-        /* 弹窗提示 */
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--primary); padding: 12px 24px; border-radius: 30px; color: #fff; font-weight: 600; font-size: 14px; opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2000; pointer-events: none; }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
@@ -135,43 +132,31 @@
         </div>
         
         <div class="row" style="margin-bottom: 8px;">
-            <div class="input-group">
-                <label>长度 (Length): <span id="val-len">8</span></label>
-                <input type="range" id="ch-len" min="0" max="30" value="8" oninput="updateCrosshair()">
-            </div>
+            <div class="input-group"><label>长度 (Length)</label><input type="range" id="ch-len" min="0" max="30" value="8" oninput="updateCrosshair()"></div>
         </div>
         <div class="row" style="margin-bottom: 8px;">
-            <div class="input-group">
-                <label>粗细 (Thickness): <span id="val-thick">2</span></label>
-                <input type="range" id="ch-thick" min="1" max="10" value="2" oninput="updateCrosshair()">
-            </div>
+            <div class="input-group"><label>粗细 (Thickness)</label><input type="range" id="ch-thick" min="1" max="10" value="2" oninput="updateCrosshair()"></div>
         </div>
         <div class="row" style="margin-bottom: 8px;">
-            <div class="input-group">
-                <label>间隙 (Gap): <span id="val-gap">2</span></label>
-                <input type="range" id="ch-gap" min="-10" max="20" value="2" oninput="updateCrosshair()">
-            </div>
+            <div class="input-group"><label>间隙 (Gap)</label><input type="range" id="ch-gap" min="-10" max="20" value="2" oninput="updateCrosshair()"></div>
         </div>
         <div class="row" style="margin-bottom: 16px;">
-            <div class="input-group">
-                <label>外框 (Outline): <span id="val-out">1</span></label>
-                <input type="range" id="ch-out" min="0" max="3" value="1" oninput="updateCrosshair()">
-            </div>
+            <div class="input-group"><label>外框 (Outline)</label><input type="range" id="ch-out" min="0" max="3" value="1" oninput="updateCrosshair()"></div>
         </div>
         
         <h3 style="font-size: 12px; margin: 24px 0 12px; color: var(--text-sub); text-transform: uppercase;">色彩与透明度</h3>
         <div class="row" style="margin-bottom: 8px;">
-            <div class="input-group"><label>红 (R): <span id="val-r">0</span></label><input type="range" id="ch-r" min="0" max="255" value="0" oninput="updateCrosshair()"></div>
-            <div class="input-group"><label>绿 (G): <span id="val-g">255</span></label><input type="range" id="ch-g" min="0" max="255" value="255" oninput="updateCrosshair()"></div>
+            <div class="input-group"><label>红 (R)</label><input type="range" id="ch-r" min="0" max="255" value="0" oninput="updateCrosshair()"></div>
+            <div class="input-group"><label>绿 (G)</label><input type="range" id="ch-g" min="0" max="255" value="255" oninput="updateCrosshair()"></div>
         </div>
         <div class="row" style="margin-bottom: 16px;">
-            <div class="input-group"><label>蓝 (B): <span id="val-b">0</span></label><input type="range" id="ch-b" min="0" max="255" value="0" oninput="updateCrosshair()"></div>
-            <div class="input-group"><label>透明度 (Alpha): <span id="val-a">1.0</span></label><input type="range" id="ch-a" min="0" max="1" step="0.1" value="1" oninput="updateCrosshair()"></div>
+            <div class="input-group"><label>蓝 (B)</label><input type="range" id="ch-b" min="0" max="255" value="0" oninput="updateCrosshair()"></div>
+            <div class="input-group"><label>透明 (A)</label><input type="range" id="ch-a" min="0" max="1" step="0.1" value="1" oninput="updateCrosshair()"></div>
         </div>
 
         <h3 style="font-size: 12px; margin: 24px 0 12px; color: var(--text-sub); text-transform: uppercase;">特殊属性</h3>
         <label class="checkbox-group"><input type="checkbox" id="ch-dot" onchange="updateCrosshair()"> 中心点 (Center Dot)</label>
-        <label class="checkbox-group"><input type="checkbox" id="ch-t" onchange="updateCrosshair()"> T字形准星 (T-Style)</label>
+        <label class="checkbox-group"><input type="checkbox" id="ch-t" onchange="updateCrosshair()"> T字形 (T-Style)</label>
         <label class="checkbox-group"><input type="checkbox" id="ch-recoil" onchange="updateCrosshair()"> 动态反馈 (Follow Recoil)</label>
 
         <div class="row" style="margin-top: 24px;">
@@ -183,7 +168,7 @@
     <!-- 主界面 -->
     <div id="setup-screen" class="container">
         <h1>灵敏度评估系统</h1>
-        <p class="desc">多维度数据分析与自适应肌肉记忆映射</p>
+        <p class="desc">底层 Raw Input 鼠标接管引擎 · 肌肉记忆完美映射</p>
         <div class="row">
             <div class="input-group">
                 <label>测试游戏引擎</label>
@@ -213,18 +198,32 @@
             </div>
         </div>
         <button class="btn-secondary" onclick="toggleCrosshairSettings()">准星定制系统</button>
-        <button onclick="startSequence()">启动核心测试</button>
+        <button onclick="nextStage()">进入测试</button>
     </div>
 
-    <!-- 过场动画 -->
-    <div id="transition-screen" class="hidden">
-        <div id="transition-text">阶段 1: 拉枪测试 (Speed)</div>
-        <div id="transition-count">3</div>
+    <!-- 教程与过场界面 -->
+    <div id="tutorial-screen" class="hidden">
+        <div class="container" style="background: transparent; box-shadow: none; border: none; backdrop-filter: none;">
+            <h1 id="tut-title" style="font-size: 36px; color: var(--primary); margin-bottom: 16px;">阶段 1</h1>
+            <p id="tut-desc-zh" style="font-size: 18px; color: #fff; margin-bottom: 12px; font-weight: 500;">中文介绍</p>
+            <p id="tut-desc-en" style="font-size: 14px; color: var(--text-sub); margin-bottom: 32px; font-style: italic;">English description</p>
+            <button onclick="requestLockAndStart()" style="max-width: 250px; margin: 0 auto; display: block;">开始测试 (Start)</button>
+        </div>
+    </div>
+
+    <!-- 暂停界面 -->
+    <div id="pause-screen" class="hidden">
+        <div class="container" style="background: var(--bg-glass); box-shadow: 0 24px 48px rgba(0,0,0,0.8);">
+            <h1 style="color: #fff; margin-bottom: 24px;">测试已暂停</h1>
+            <button onclick="requestLockAndStart()">继续测试 (Resume)</button>
+            <button class="btn-danger" onclick="abortTest()" style="margin-top: 16px;">退出测试 (Exit)</button>
+        </div>
     </div>
 
     <!-- 测试场景 -->
     <div id="arena-screen" class="hidden">
         <div id="target-container"></div>
+        <div id="esc-hint">ESC 暂停 / 退出测试</div>
         <div id="hud">
             <div class="stage-title" id="hud-stage">拉枪测试</div>
             <div>剩余时间: <span id="time-display">15.0</span>s</div>
@@ -236,12 +235,12 @@
     <!-- 结果面板 -->
     <div id="result-screen" class="container hidden">
         <h1 style="margin-bottom:8px;">神经映射解析报告</h1>
-        <p class="desc" style="margin-bottom:24px;">基于测试数据的空间控制力诊断</p>
+        <p class="desc" style="margin-bottom:24px;">基于实弹数据的空间控制力精准诊断</p>
         <div>
             <div class="stat-bar"><div class="stat-label">拉枪 (Speed)</div><div class="bar-bg"><div class="bar-fill fill-speed" id="bar-speed" style="width:0%;"></div></div><div class="stat-val" id="val-speed">0</div></div>
             <div class="stat-bar"><div class="stat-label">跟枪 (Tracking)</div><div class="bar-bg"><div class="bar-fill fill-smooth" id="bar-smooth" style="width:0%;"></div></div><div class="stat-val" id="val-smooth">0</div></div>
             <div class="stat-bar"><div class="stat-label">微调 (Precision)</div><div class="bar-bg"><div class="bar-fill fill-prec" id="bar-prec" style="width:0%;"></div></div><div class="stat-val" id="val-prec">0</div></div>
-            <div class="stat-bar"><div class="stat-label">转身 (Flick)</div><div class="bar-bg"><div class="bar-fill fill-turn" id="bar-turn" style="width:0%;"></div></div><div class="stat-val" id="val-turn">0</div></div>
+            <div class="stat-bar"><div class="stat-label">大幅度转身</div><div class="bar-bg"><div class="bar-fill fill-turn" id="bar-turn" style="width:0%;"></div></div><div class="stat-val" id="val-turn">0</div></div>
         </div>
         <div class="result-box">
             <div style="font-size:12px;color:var(--text-sub);font-weight:600;text-transform:uppercase;letter-spacing:1px;">系统推荐 <span id="final-game-name">CS2</span> 灵敏度</div>
@@ -250,22 +249,25 @@
         </div>
         <div class="advice-list" id="advice-container"></div>
         <div style="margin-top:20px;">
-            <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;text-align:left;">点击下方区域复制控制台应用指令：</p>
+            <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;text-align:left;">点击下方区域一键复制应用指令：</p>
             <div class="cmd-text" id="cmd-box" onclick="copyCmd()">sensitivity 1.25</div>
         </div>
         <button style="margin-top:20px;" onclick="location.reload()">重启测试</button>
     </div>
 
-    <!-- 弹窗 -->
     <div id="toast"></div>
 
     <script>
-        // --- 核心变量 ---
-        let currentStage = 0, stageTime = 15, endTime = 0, gameLoopInterval = null, animationFrameId = null;
-        let isMouseDown = false, isTrackingStarted = false;
-        let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+        let currentStage = 0, stageTime = 15, timeLeft = 15, gameLoopInterval = null, animationFrameId = null;
+        let isMouseDown = false, isTrackingStarted = false, isPaused = false;
+        
+        let vX = window.innerWidth / 2, vY = window.innerHeight / 2; 
+        
         let ticks = { trackingTotal: 0, trackingHit: 0 }, clicks = { speed: 0, prec: 0, turn: 0 }, hits = { speed: 0, prec: 0, turn: 0 };
         let userData = { game: 'cs2', dpi: 800, currentSens: 1.0, resolution: '16:9' };
+        
+        let precCenterBaseX = window.innerWidth / 2, precCenterBaseY = window.innerHeight / 2;
+        let precLastX = precCenterBaseX, precLastY = precCenterBaseY;
         
         const GAMES = {
             cs2:      { name: "CS2",       anchor: 880,  multiplier: 1 },
@@ -275,18 +277,24 @@
         };
 
         const dom = {
-            setup: document.getElementById('setup-screen'), transition: document.getElementById('transition-screen'),
-            arena: document.getElementById('arena-screen'), result: document.getElementById('result-screen'),
+            setup: document.getElementById('setup-screen'), tutorial: document.getElementById('tutorial-screen'),
+            arena: document.getElementById('arena-screen'), result: document.getElementById('result-screen'), pause: document.getElementById('pause-screen'),
             container: document.getElementById('target-container'), crosshairWrap: document.getElementById('crosshair-wrapper'),
             customCrosshair: document.getElementById('custom-crosshair'), toast: document.getElementById('toast')
         };
 
-        // --- 视窗安全区计算 ---
+        const tutTexts = [
+            { zh: "", en: "" },
+            { title: "阶段 1: 拉枪测试", zh: "以最快速度精准点击屏幕随机出现的目标", en: "Click the targets as fast and accurately as possible." },
+            { title: "阶段 2: 轮替跟枪", zh: "点击目标后长按鼠标左键，死死跟住移动的目标", en: "Click and hold the left mouse button to track the moving target." },
+            { title: "阶段 3: 微调测试 (Micro)", zh: "精准点击在中央小范围内极其密集出现的微小目标", en: "Accurately click the tiny targets within a small micro-cluster." },
+            { title: "阶段 4: 大幅度转身", zh: "点击屏幕边缘的高亮光幕，随后迅速拉回瞄准目标", en: "Click the side zone, then quickly flick back to hit the target." }
+        ];
+
         function getSafeMinX(margin) { return (userData.resolution === '4:3' ? window.innerWidth * 0.125 : 0) + margin; }
         function getSafeMaxX(margin) { return (userData.resolution === '4:3' ? window.innerWidth * 0.875 : window.innerWidth) - margin; }
         function showToast(msg) { dom.toast.innerText = msg; dom.toast.classList.add('show'); setTimeout(() => dom.toast.classList.remove('show'), 2500); }
 
-        // --- 基础设置储存 ---
         function saveGameSettings() {
             const s = { game: document.getElementById('game-input').value, dpi: document.getElementById('dpi-input').value, sens: document.getElementById('sens-input').value, res: document.getElementById('res-input').value };
             localStorage.setItem('cs2-gen-settings', JSON.stringify(s));
@@ -302,7 +310,6 @@
             }
         }
 
-        // --- 准星系统 ---
         function toggleCrosshairSettings() { document.getElementById('crosshair-settings').classList.toggle('open'); }
         function getCrosshairConfig() {
             return { len: document.getElementById('ch-len').value, thick: document.getElementById('ch-thick').value, gap: document.getElementById('ch-gap').value, out: document.getElementById('ch-out').value, r: document.getElementById('ch-r').value, g: document.getElementById('ch-g').value, b: document.getElementById('ch-b').value, a: document.getElementById('ch-a').value, dot: document.getElementById('ch-dot').checked, tstyle: document.getElementById('ch-t').checked, recoil: document.getElementById('ch-recoil').checked };
@@ -313,10 +320,8 @@
         }
         function updateCrosshair() {
             const c = getCrosshairConfig();
-            document.getElementById('val-len').innerText = c.len; document.getElementById('val-thick').innerText = c.thick; document.getElementById('val-gap').innerText = c.gap; document.getElementById('val-out').innerText = c.out; document.getElementById('val-r').innerText = c.r; document.getElementById('val-g').innerText = c.g; document.getElementById('val-b').innerText = c.b; document.getElementById('val-a').innerText = c.a;
             const root = document.documentElement;
             root.style.setProperty('--ch-len', c.len + 'px'); root.style.setProperty('--ch-thick', c.thick + 'px'); root.style.setProperty('--ch-gap', c.gap + 'px'); root.style.setProperty('--ch-out', c.out + 'px'); root.style.setProperty('--ch-color', `rgba(${c.r},${c.g},${c.b},${c.a})`); root.style.setProperty('--ch-dot-size', c.dot ? c.thick + 'px' : '0px'); root.style.setProperty('--ch-top-display', c.tstyle ? 'none' : 'block');
-            
             let scale = userData.resolution === '4:3' ? 1.3333 : 1;
             dom.customCrosshair.style.transform = `scaleX(${scale})`;
             document.getElementById('preview-crosshair').style.transform = `translate(-50%, -50%) scaleX(${scale})`;
@@ -328,16 +333,47 @@
         
         loadGameSettings(); loadCrosshair(); updateCrosshair();
 
-        // --- 交互捕捉 ---
+        // --- 核心技术：真实引擎接管 ---
         document.addEventListener('mousemove', e => { 
-            mouseX = e.clientX; mouseY = e.clientY; 
-            if(!dom.arena.classList.contains('hidden') || !dom.transition.classList.contains('hidden')) {
-                dom.crosshairWrap.style.left = mouseX + 'px'; dom.crosshairWrap.style.top = mouseY + 'px';
+            if (document.pointerLockElement === dom.arena) {
+                
+                let sens = parseFloat(document.getElementById('sens-input').value) || 1.0;
+                let gameCfg = GAMES[document.getElementById('game-input').value];
+                let cs2Sens = sens * gameCfg.multiplier;
+                
+                let fov = 106.26;
+                let pixelPerDegree = window.innerWidth / fov;
+                let engineScale = cs2Sens * 0.022 * pixelPerDegree;
+                let scaleX = userData.resolution === '4:3' ? 1.3333 : 1; 
+
+                vX += e.movementX * engineScale * scaleX;
+                vY += e.movementY * engineScale;
+
+                vX = Math.max(0, Math.min(window.innerWidth, vX));
+                vY = Math.max(0, Math.min(window.innerHeight, vY));
+
+                dom.crosshairWrap.style.left = vX + 'px'; 
+                dom.crosshairWrap.style.top = vY + 'px';
+            } else {
+                vX = e.clientX; vY = e.clientY; 
+                if(!dom.arena.classList.contains('hidden') || !dom.tutorial.classList.contains('hidden')) {
+                    dom.crosshairWrap.style.left = vX + 'px'; 
+                    dom.crosshairWrap.style.top = vY + 'px';
+                }
             }
         });
+
+        document.addEventListener('pointerlockchange', () => {
+            if (currentStage > 0 && currentStage <= 4) {
+                if (!document.pointerLockElement && !dom.arena.classList.contains('hidden')) {
+                    pauseTest();
+                }
+            }
+        });
+
         document.addEventListener('mousedown', () => {
             isMouseDown = true;
-            if(document.getElementById('ch-recoil').checked && !dom.arena.classList.contains('hidden')) dom.customCrosshair.style.margin = '4px';
+            if(document.getElementById('ch-recoil').checked && (!dom.arena.classList.contains('hidden'))) dom.customCrosshair.style.margin = '4px';
         });
         document.addEventListener('mouseup', () => {
             isMouseDown = false;
@@ -351,95 +387,132 @@
             updateCrosshair();
         }
 
-        // --- 全局精准点击与触发判定 ---
         dom.arena.addEventListener('mousedown', (e) => {
+            if (!document.pointerLockElement) { requestLockAndStart(); return; }
+
+            let targetEl = document.elementFromPoint(vX, vY);
+            if (!targetEl) return;
+
             if (currentStage === 1) {
                 clicks.speed++;
-                if (e.target.classList.contains('target-speed')) {
+                if (targetEl.classList.contains('target-speed')) {
                     hits.speed++; document.getElementById('score-display').innerText = hits.speed;
-                    e.target.remove(); spawnSpeedTarget();
+                    targetEl.remove(); spawnSpeedTarget();
                 }
             } else if (currentStage === 2 && !isTrackingStarted && trackTarget) {
-                // 跟枪精准底层触发机制：免疫拉伸带来的 DOM 错位
                 let rect = trackTarget.getBoundingClientRect();
                 let realTx = rect.left + rect.width / 2;
                 let realTy = rect.top + rect.height / 2;
                 let scaleX = userData.resolution === '4:3' ? 1.3333 : 1;
-                let dx = (mouseX - realTx) / scaleX;
-                let dy = (mouseY - realTy);
-                if (Math.hypot(dx, dy) <= 32) {
+                let dx = (vX - realTx) / scaleX;
+                let dy = (vY - realTy);
+                if (Math.hypot(dx, dy) <= 35) {
                     isTrackingStarted = true;
+                    trackingStartTime = Date.now();
                     trackTarget.classList.remove('target-tracking-waiting');
                 }
             } else if (currentStage === 3) {
                 clicks.prec++;
-                if (e.target.classList.contains('target-precision')) {
+                if (targetEl.classList.contains('target-precision')) {
                     hits.prec++; document.getElementById('score-display').innerText = hits.prec;
-                    e.target.remove(); spawnPrecisionTarget();
+                    targetEl.remove(); spawnPrecisionTarget();
                 }
             } else if (currentStage === 4) {
                 if (document.querySelector('.target-turn')) {
                     clicks.turn++;
-                    if (e.target.classList.contains('target-turn')) {
+                    if (targetEl.classList.contains('target-turn')) {
                         hits.turn++; document.getElementById('score-display').innerText = hits.turn;
-                        e.target.remove(); spawnTurnZone();
+                        targetEl.remove(); spawnTurnZone();
                     }
-                } else if (e.target.classList.contains('turn-zone')) {
-                    let isLeft = e.target.classList.contains('left');
-                    e.target.remove(); spawnTurnTarget(isLeft);
+                } else if (targetEl.classList.contains('turn-zone')) {
+                    let isLeft = targetEl.classList.contains('left');
+                    targetEl.remove(); spawnTurnTarget(isLeft);
                 }
             }
         });
-
-        // --- 核心流程 ---
-        function startSequence() {
-            userData.game = document.getElementById('game-input').value;
-            userData.dpi = parseInt(document.getElementById('dpi-input').value) || 800;
-            userData.currentSens = parseFloat(document.getElementById('sens-input').value) || 1.0;
-            userData.resolution = document.getElementById('res-input').value;
-            updateResolutionPreview(); saveGameSettings();
-            
-            dom.setup.classList.add('hidden');
-            dom.crosshairWrap.style.display = 'block';
-            document.body.style.cursor = 'none';
-            nextStage();
-        }
 
         function nextStage() {
             currentStage++;
             if (currentStage > 4) { showResults(); return; }
             
+            dom.setup.classList.add('hidden');
             dom.arena.classList.add('hidden');
             dom.container.innerHTML = '';
-            dom.transition.classList.remove('hidden');
             
-            const stageNames = ["", "阶段 1: 拉枪测试 (Speed)", "阶段 2: 轮替跟枪 (Tracking)", "阶段 3: 微调测试 (Precision)", "阶段 4: 极限转身 (Turn & Flick)"];
-            document.getElementById('transition-text').innerText = stageNames[currentStage];
-            
-            let count = 3; document.getElementById('transition-count').innerText = count;
-            let timer = setInterval(() => {
-                count--;
-                if (count > 0) document.getElementById('transition-count').innerText = count;
-                else { clearInterval(timer); dom.transition.classList.add('hidden'); startCurrentStage(); }
-            }, 1000);
+            document.getElementById('tut-title').innerText = tutTexts[currentStage].title;
+            document.getElementById('tut-desc-zh').innerText = tutTexts[currentStage].zh;
+            document.getElementById('tut-desc-en').innerText = tutTexts[currentStage].en;
+            dom.tutorial.classList.remove('hidden');
+            dom.crosshairWrap.style.display = 'block';
+            document.body.style.cursor = 'none';
+            timeLeft = stageTime;
         }
+
+        function requestLockAndStart() {
+            try {
+                dom.arena.requestPointerLock({ unadjustedMovement: true });
+            } catch (err) {
+                dom.arena.requestPointerLock = dom.arena.requestPointerLock || dom.arena.mozRequestPointerLock;
+                dom.arena.requestPointerLock();
+            }
+            
+            dom.tutorial.classList.add('hidden');
+            dom.pause.classList.add('hidden');
+            isPaused = false;
+            
+            if (!dom.arena.classList.contains('hidden')) {
+                startTimer();
+            } else {
+                startCurrentStage();
+            }
+        }
+
+        function pauseTest() {
+            isPaused = true;
+            clearInterval(gameLoopInterval);
+            if(animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+            dom.pause.classList.remove('hidden');
+        }
+
+        function abortTest() { location.reload(); }
 
         function startCurrentStage() {
             dom.arena.classList.remove('hidden');
-            const shortNames = ["", "拉枪阶段", "轮替跟枪", "微调阶段", "转身阶段"];
+            const shortNames = ["", "拉枪阶段", "轮替跟枪", "微调阶段 (Micro)", "大幅度转身测试"];
             document.getElementById('hud-stage').innerText = shortNames[currentStage];
             document.getElementById('score-display').innerText = "0";
             document.getElementById('acc-display').innerText = "100";
+            document.getElementById('time-display').innerText = timeLeft.toFixed(1);
             
-            endTime = Date.now() + (stageTime * 1000);
             if (currentStage === 1) { for(let i=0; i<3; i++) spawnSpeedTarget(); }
             else if (currentStage === 2) spawnTrackingTarget();
-            else if (currentStage === 3) spawnPrecisionTarget();
+            else if (currentStage === 3) {
+                precCenterBaseX = window.innerWidth / 2;
+                precCenterBaseY = window.innerHeight / 2;
+                precLastX = precCenterBaseX;
+                precLastY = precCenterBaseY;
+                spawnPrecisionTarget(); 
+            }
             else if (currentStage === 4) spawnTurnZone();
             
+            startTimer();
+        }
+
+        let lastTime = 0;
+        function startTimer() {
+            lastTime = Date.now();
+            if(currentStage === 2 && isTrackingStarted && trackTarget) {
+                trackingStartTime += (Date.now() - lastTime); 
+                animationFrameId = requestAnimationFrame(trackingLoop);
+            }
+            
             gameLoopInterval = setInterval(() => {
-                let timeLeft = Math.max(0, (endTime - Date.now()) / 1000);
-                document.getElementById('time-display').innerText = timeLeft.toFixed(1);
+                if(isPaused) return;
+                let now = Date.now();
+                timeLeft -= (now - lastTime) / 1000;
+                lastTime = now;
+                
+                document.getElementById('time-display').innerText = Math.max(0, timeLeft).toFixed(1);
                 
                 let acc = 100;
                 if (currentStage === 1 && clicks.speed > 0) acc = (hits.speed / clicks.speed) * 100;
@@ -450,13 +523,13 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(gameLoopInterval);
-                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+                    document.exitPointerLock();
                     nextStage();
                 }
             }, 50);
         }
 
-        // 阶段 1: 拉枪
         function spawnSpeedTarget() {
             const t = document.createElement('div');
             t.className = 'target target-speed';
@@ -466,44 +539,74 @@
             dom.container.appendChild(t);
         }
 
-        // 阶段 2: 轮替跟枪
-        let trackTarget = null, trackBaseX = 0, trackBaseY = 0, trackTime = 0, trackingFrames = 0;
+        // ==============================================
+        // 重构的 ADAD 匀速跟枪引擎 (引入 dt 解决高刷屏幕失控问题)
+        // ==============================================
+        let trackTarget = null, tX = 0, tY = 0, tDirX = 1, trackingStartTime = 0;
+        let trackSpeed = 250; // 每秒移动像素数 (平滑适中的速度)
+        let trackingLastFrame = 0;
+        let changeDirectionTimer = 0;
+
         function spawnTrackingTarget() {
             if(currentStage !== 2) return;
-            isTrackingStarted = false; trackingFrames = 0;
+            isTrackingStarted = false; 
             trackTarget = document.createElement('div');
             trackTarget.className = 'target target-tracking target-tracking-waiting';
             trackTarget.style.width = '65px'; trackTarget.style.height = '65px';
             
-            trackBaseX = Math.random() * (getSafeMaxX(120) - getSafeMinX(120)) + getSafeMinX(120);
-            trackBaseY = Math.random() * (window.innerHeight - 200) + 100;
-            trackTarget.style.left = trackBaseX + 'px'; trackTarget.style.top = trackBaseY + 'px';
+            tX = Math.random() * (getSafeMaxX(120) - getSafeMinX(120)) + getSafeMinX(120);
+            tY = Math.random() * (window.innerHeight - 200) + 100;
+            trackTarget.style.left = tX + 'px'; trackTarget.style.top = tY + 'px';
+            
+            tDirX = Math.random() > 0.5 ? 1 : -1;
+            changeDirectionTimer = 0.6 + Math.random() * 1.0; // 0.6秒 ~ 1.6秒的单向移动时间
+            trackingLastFrame = performance.now();
+            
             dom.container.appendChild(trackTarget);
-            if(!animationFrameId) trackingLoop();
+            if(!animationFrameId) animationFrameId = requestAnimationFrame(trackingLoop);
         }
 
-        function trackingLoop() {
-            if (currentStage !== 2) return;
-            if (isTrackingStarted && trackTarget) {
-                trackTime += 0.0085;
-                let tX = trackBaseX + Math.sin(trackTime*1.2)*(window.innerWidth*0.1) + Math.cos(trackTime*1.8)*40;
-                let tY = trackBaseY + Math.cos(trackTime*0.9)*(window.innerHeight*0.1) + Math.sin(trackTime*1.3)*25;
-                
-                tX = Math.max(getSafeMinX(35), Math.min(getSafeMaxX(35), tX));
-                tY = Math.max(50, Math.min(window.innerHeight - 50, tY));
-                trackTarget.style.left = tX + 'px'; trackTarget.style.top = tY + 'px';
-                trackingFrames++;
+        function trackingLoop(currentTime) {
+            if (currentStage !== 2 || isPaused) { animationFrameId = null; return; }
+            
+            // 计算两帧之间的时间差 (单位：秒)
+            let dt = (currentTime - trackingLastFrame) / 1000;
+            if (dt > 0.1 || isNaN(dt)) dt = 0.016; // 防止切屏导致的数据爆炸
+            trackingLastFrame = currentTime;
 
+            if (isTrackingStarted && trackTarget) {
+                
+                // 模拟人类走位变向逻辑
+                changeDirectionTimer -= dt;
+                if (changeDirectionTimer <= 0) {
+                    tDirX *= -1; // 180度身法急停
+                    changeDirectionTimer = 0.6 + Math.random() * 1.0;
+                }
+                
+                // 平滑横向移动
+                tX += trackSpeed * tDirX * dt;
+                
+                // 极慢的垂直呼吸浮动，模拟人物真实移动的起伏
+                tY += Math.sin(currentTime / 400) * 15 * dt;
+                
+                // 碰到边界强制反向弹回
+                if (tX <= getSafeMinX(35)) { tX = getSafeMinX(35); tDirX = 1; changeDirectionTimer = 0.5 + Math.random(); }
+                if (tX >= getSafeMaxX(35)) { tX = getSafeMaxX(35); tDirX = -1; changeDirectionTimer = 0.5 + Math.random(); }
+                tY = Math.max(50, Math.min(window.innerHeight - 50, tY));
+
+                trackTarget.style.left = tX + 'px'; trackTarget.style.top = tY + 'px';
+
+                // 碰撞体积判定
                 if (isMouseDown) {
                     ticks.trackingTotal++;
                     let rect = trackTarget.getBoundingClientRect();
                     let realTx = rect.left + rect.width / 2;
                     let realTy = rect.top + rect.height / 2;
                     let scaleX = userData.resolution === '4:3' ? 1.3333 : 1;
-                    let dx = (mouseX - realTx) / scaleX;
-                    let dy = (mouseY - realTy);
+                    let dx = (vX - realTx) / scaleX;
+                    let dy = (vY - realTy);
                     
-                    if (Math.hypot(dx, dy) < 32) {
+                    if (Math.hypot(dx, dy) < 35) { // 稍微放宽一点边缘判定
                         ticks.trackingHit++;
                         trackTarget.classList.add('tracking-active');
                     } else {
@@ -514,34 +617,42 @@
                     trackTarget.classList.remove('tracking-active');
                 }
 
-                if (trackingFrames > 150) {
+                // 每个目标持续跟踪 4.5 秒后刷新
+                if (Date.now() - trackingStartTime > 4500) {
                     trackTarget.remove(); trackTarget = null; isTrackingStarted = false;
-                    setTimeout(spawnTrackingTarget, 400); return; 
+                    setTimeout(spawnTrackingTarget, 400); 
                 }
             }
-            animationFrameId = requestAnimationFrame(trackingLoop);
+            if(currentStage === 2 && !isPaused) animationFrameId = requestAnimationFrame(trackingLoop);
         }
 
-        // 阶段 3: 微调
-        let precLastX = window.innerWidth/2, precLastY = window.innerHeight/2;
+        // ==============================================
+        // 重构的微调 (Micro) 训练引擎：屏幕中心极小范围内密集生成
+        // ==============================================
         function spawnPrecisionTarget() {
             const t = document.createElement('div');
             t.className = 'target target-precision';
             t.style.width = '12px'; t.style.height = '12px';
+            
             let angle = Math.random() * Math.PI * 2;
-            let distance = 20 + Math.random() * 60;
-            let minX = getSafeMinX(20), maxX = getSafeMaxX(20);
-            let nextX = precLastX + Math.cos(angle)*distance;
-            let nextY = precLastY + Math.sin(angle)*distance;
-            if (nextX < minX || nextX > maxX || nextY < 50 || nextY > window.innerHeight - 50) {
-                nextX = minX + (maxX - minX)/2; nextY = window.innerHeight/2;
+            let distance = 20 + Math.random() * 40; // KovaaK Micro 模式的极小间距 (20~60px)
+            
+            let nextX = precLastX + Math.cos(angle) * distance;
+            let nextY = precLastY + Math.sin(angle) * distance;
+
+            // 如果脱离了屏幕中心 150px 的正方形区域，强制向中心拉回，确保你手腕只需要做微雕移动
+            let maxRadius = 150;
+            if (Math.hypot(nextX - precCenterBaseX, nextY - precCenterBaseY) > maxRadius) {
+                angle = Math.atan2(precCenterBaseY - precLastY, precCenterBaseX - precLastX) + (Math.random() - 0.5);
+                nextX = precLastX + Math.cos(angle) * distance;
+                nextY = precLastY + Math.sin(angle) * distance;
             }
+
             precLastX = nextX; precLastY = nextY;
             t.style.left = nextX + 'px'; t.style.top = nextY + 'px';
             dom.container.appendChild(t);
         }
 
-        // 阶段 4: 转身
         function spawnTurnZone() {
             let isLeft = Math.random() > 0.5;
             let zone = document.createElement('div');
@@ -555,15 +666,15 @@
             t.style.width = '35px'; t.style.height = '35px';
             let minX = getSafeMinX(40), maxX = getSafeMaxX(40);
             let midX = minX + (maxX - minX) / 2;
-            let tx = wasLeft ? (midX + Math.random() * (maxX - midX)*0.8) : (minX + Math.random() * (midX - minX)*0.8);
-            let ty = window.innerHeight*0.3 + Math.random()*(window.innerHeight*0.4);
+            let tx = wasLeft ? (midX + Math.random() * (maxX - midX)) : (minX + Math.random() * (midX - minX));
+            let ty = Math.random() * (window.innerHeight - 100) + 50;
             t.style.left = tx + 'px'; t.style.top = ty + 'px';
             dom.container.appendChild(t);
-            setTimeout(() => { if(t.parentNode && currentStage === 4) { t.remove(); spawnTurnZone(); } }, 2000);
+            setTimeout(() => { if(t.parentNode && currentStage === 4 && !isPaused) { t.remove(); spawnTurnZone(); } }, 2000);
         }
 
-        // --- 结果计算 ---
         function showResults() {
+            document.exitPointerLock();
             dom.arena.classList.add('hidden'); dom.result.classList.remove('hidden');
             dom.crosshairWrap.style.display = 'none'; document.body.style.cursor = 'default';
             dom.container.style.transform = 'none'; 
@@ -598,7 +709,7 @@
             if (s_turn < 6) { multiplier *= 1.06; advices.push("转身表现较弱，桌面空间可能受限，已提高基准保障机动性。"); }
             if (userData.resolution === '4:3') { 
                 multiplier *= 0.96; 
-                advices.push("已自动切换为 4:3 比例准星，算法已应用横向视觉补偿。若要保持游戏内上下左右体感完全一致，建议在 CS2 控制台输入 m_yaw 0.0165。"); 
+                advices.push("已自动应用 4:3 比例准星横向拉伸及视觉补偿。"); 
             }
             if (advices.length === 0) advices.push("各项测试表现均衡，当前肌肉记忆高度契合，请保持该设定。");
 
@@ -609,6 +720,9 @@
             document.getElementById('final-sens').innerText = final_sens;
             document.getElementById('final-edpi').innerText = Math.round(final_uni_eDPI);
             document.getElementById('cmd-box').innerText = `sensitivity ${final_sens}`;
+            
+            document.getElementById('sens-input').value = final_sens;
+            saveGameSettings();
             
             const adviceContainer = document.getElementById('advice-container');
             adviceContainer.innerHTML = '';
