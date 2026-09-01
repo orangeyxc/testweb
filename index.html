@@ -3,414 +3,467 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>神經映射瞄準評估系統 (Neuro-Aim)</title>
+    <title>CS2 综合灵敏度评估系统</title>
     <style>
-        :root{--bg-color:#05070a;--panel-bg:#0d111a;--primary:#00ffcc;--accent:#ff3366;--success:#ccff00;--turn:#9933ff;--text-main:#e0e6ed;--text-sub:#738299}
-        *{box-sizing:border-box;margin:0;padding:0;user-select:none}
-        body{background-color:var(--bg-color);color:var(--text-main);font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden;cursor:crosshair;background-image:radial-gradient(circle at center, #0d111a 0%, #05070a 100%)}
-        .hidden{display:none!important}
-        .container{background-color:var(--panel-bg);padding:35px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.8);text-align:center;max-width:620px;width:100%;border:1px solid rgba(0,255,204,0.15);z-index:100;position:relative}
-        h1{font-size:26px;margin-bottom:8px;color:var(--primary);text-shadow:0 0 12px rgba(0,255,204,0.3);letter-spacing:1px}
-        p.desc{color:var(--text-sub);font-size:13px;margin-bottom:25px;line-height:1.6}
-        .row{display:flex;gap:15px;margin-bottom:15px}
-        .input-group{flex:1;text-align:left}
-        .input-group label{display:block;margin-bottom:6px;font-size:12px;color:#a0aabf;text-transform:uppercase;letter-spacing:0.5px}
-        input[type="number"],select{width:100%;padding:12px;background:rgba(0,0,0,0.5);border:1px solid #1f293d;color:#fff;border-radius:8px;font-size:15px;outline:none;cursor:pointer;transition:border 0.2s}
-        input[type="number"]:focus,select:focus{border-color:var(--primary)}
-        button{width:100%;padding:15px;background:linear-gradient(135deg,#00b38f,#00ffcc);color:#000;border:none;border-radius:8px;font-size:16px;font-weight:900;text-transform:uppercase;cursor:pointer;transition:transform 0.1s,box-shadow 0.2s;margin-top:15px;letter-spacing:1px}
-        button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,255,204,0.4)}
-        #arena-screen{position:absolute;top:0;left:0;width:100vw;height:100vh;background-color:#030406;background-image:linear-gradient(rgba(0,255,204,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,204,0.03) 1px,transparent 1px);background-size:40px 40px}
-        #hud{position:absolute;top:25px;left:50%;transform:translateX(-50%);display:flex;gap:40px;font-size:16px;font-weight:bold;color:var(--primary);background:rgba(5,7,10,0.8);padding:12px 35px;border-radius:40px;border:1px solid #1f293d;z-index:10;pointer-events:none;backdrop-filter:blur(4px)}
-        .stage-title{color:var(--accent)}
-        .target{position:absolute;transform:translate(-50%,-50%);cursor:crosshair}
-        .target-speed{clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:var(--primary);box-shadow:0 0 15px var(--primary)}
-        .target-precision{clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);background:var(--accent);box-shadow:0 0 15px var(--accent)}
-        .target-tracking{border-radius:30% 70% 70% 30%/30% 30% 70% 70%;background:rgba(204,255,0,0.2);border:2px solid var(--success);box-shadow:0 0 20px rgba(204,255,0,0.2);transition:border-radius 0.3s}
-        .tracking-active{background:var(--success)!important;box-shadow:0 0 30px var(--success)!important;border-radius:50%!important}
-        .turn-zone{position:absolute;top:0;width:60px;height:100vh;background:rgba(153,51,255,0.15);border:1px solid var(--turn);box-shadow:0 0 30px rgba(153,51,255,0.3);z-index:5}
-        .target-turn{clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);background:var(--turn);box-shadow:0 0 20px var(--turn)}
-        #transition-screen{position:absolute;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,10,0.9);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:50}
-        #transition-text{font-size:24px;color:var(--primary);margin-bottom:20px;letter-spacing:2px}
-        #transition-count{font-size:90px;font-weight:900;color:#fff;text-shadow:0 0 30px var(--primary)}
-        .result-box{background:rgba(0,0,0,0.3);padding:20px;border-radius:12px;margin:15px 0;border:1px dashed #1f293d}
-        .sens-value{font-size:52px;font-weight:900;color:var(--primary);margin:5px 0;text-shadow:0 0 20px rgba(0,255,204,0.4)}
-        .stat-bar{display:flex;align-items:center;margin-bottom:12px;font-size:12px;text-transform:uppercase}
-        .stat-label{width:120px;text-align:right;margin-right:15px;color:#8a91a8;font-weight:bold}
-        .bar-bg{flex:1;height:8px;background:#131826;border-radius:4px;overflow:hidden;position:relative}
-        .bar-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(0.4, 0, 0.2, 1)}
-        .fill-speed{background:var(--primary)}
-        .fill-smooth{background:var(--success)}
-        .fill-prec{background:var(--accent)}
-        .fill-turn{background:var(--turn)}
-        .stat-val{width:50px;text-align:left;margin-left:15px;font-weight:bold;color:#fff}
-        .advice-list{text-align:left;background:rgba(0,255,204,0.05);padding:15px 20px;border-radius:8px;margin-bottom:15px;border-left:3px solid var(--primary);font-size:13px;line-height:1.7}
-        .advice-item{margin-bottom:8px;color:#c0c8d6}
-        .advice-item:last-child{margin-bottom:0}
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --speed: #3b82f6;
+            --track: #10b981;
+            --prec: #ef4444;
+            --flick: #8b5cf6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; cursor: crosshair; }
+        .hidden { display: none !important; }
+        
+        /* UI 容器与版面 */
+        .container { background-color: var(--bg-card); padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; max-width: 600px; width: 100%; border: 1px solid var(--border); z-index: 100; position: relative; }
+        h1 { font-size: 24px; margin-bottom: 8px; font-weight: 600; color: #fff; }
+        p.desc { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+        .row { display: flex; gap: 16px; margin-bottom: 16px; }
+        .input-group { flex: 1; text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        input[type="number"], select { width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        input[type="number"]:focus, select:focus { border-color: var(--primary); }
+        button { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: var(--primary-hover); }
+        
+        /* 测试竞技场与 HUD */
+        #arena-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-dark); }
+        #hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 32px; font-size: 15px; font-weight: 600; color: #fff; background: var(--bg-card); padding: 12px 24px; border-radius: 8px; border: 1px solid var(--border); z-index: 10; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .stage-title { color: var(--primary); }
+        
+        /* 目标样式 (简约清晰) */
+        .target { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; cursor: crosshair; }
+        .target-speed { background: var(--speed); box-shadow: 0 0 12px rgba(59,130,246,0.6); }
+        .target-precision { background: var(--prec); box-shadow: 0 0 8px rgba(239,68,68,0.6); }
+        .target-tracking { background: transparent; border: 3px solid var(--track); box-shadow: 0 0 10px rgba(16,185,129,0.3); }
+        .tracking-active { background: rgba(16,185,129,0.2); border-color: #34d399; box-shadow: 0 0 20px rgba(16,185,129,0.6); }
+        .turn-zone { position: absolute; top: 0; width: 60px; height: 100vh; background: rgba(139,92,246,0.1); border-right: 1px solid var(--flick); cursor: crosshair; z-index: 5; }
+        .turn-zone.right { right: 0; left: auto; border-right: none; border-left: 1px solid var(--flick); }
+        .target-turn { background: var(--flick); box-shadow: 0 0 12px rgba(139,92,246,0.6); }
+        
+        /* 过场动画 */
+        #transition-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-dark); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; }
+        #transition-text { font-size: 24px; color: var(--text-main); margin-bottom: 20px; font-weight: 500; }
+        #transition-count { font-size: 72px; font-weight: 700; color: var(--primary); }
+        
+        /* 结果展示 */
+        .result-box { background: #0f172a; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid var(--border); }
+        .sens-value { font-size: 42px; font-weight: 700; color: var(--primary); margin: 8px 0; }
+        .stat-bar { display: flex; align-items: center; margin-bottom: 12px; font-size: 13px; }
+        .stat-label { width: 100px; text-align: left; color: var(--text-muted); }
+        .bar-bg { flex: 1; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; position: relative; margin: 0 15px; }
+        .bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease-out; }
+        .fill-speed { background: var(--speed); } .fill-smooth { background: var(--track); }
+        .fill-prec { background: var(--prec); } .fill-turn { background: var(--flick); }
+        .stat-val { width: 45px; text-align: right; font-weight: 600; color: #fff; }
+        .advice-list { text-align: left; background: #0f172a; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; border: 1px solid var(--border); }
+        .advice-item { margin-bottom: 6px; color: #cbd5e1; display: flex; gap: 8px; }
+        .advice-item::before { content: "•"; color: var(--primary); }
+        .cmd-text { background: #000; padding: 10px; border-radius: 6px; font-family: monospace; color: #a5d6a7; margin-top: 8px; cursor: pointer; border: 1px solid #333; }
     </style>
 </head>
 <body>
+    <!-- 设定介面 -->
     <div id="setup-screen" class="container">
-        <h1>NEURO-AIM 靈敏度映射引擎</h1>
-        <p class="desc">實彈點擊校準系統 | 多宇宙引擎支援 | 肌肉記憶深度重塑</p>
+        <h1>灵敏度评估系统</h1>
+        <p class="desc">测试并生成最适合您的游戏灵敏度</p>
         <div class="row">
             <div class="input-group">
-                <label>選擇遊戲 (Game)</label>
+                <label>选择游戏</label>
                 <select id="game-input">
                     <option value="cs2">CS2 / CS:GO</option>
                     <option value="valorant">Valorant</option>
                     <option value="apex">Apex Legends</option>
-                    <option value="pubg">PUBG (Hipfire)</option>
+                    <option value="pubg">PUBG</option>
                 </select>
             </div>
             <div class="input-group">
-                <label>滑鼠 DPI</label>
+                <label>鼠标 DPI</label>
                 <input type="number" id="dpi-input" value="800" min="100" max="10000">
             </div>
         </div>
         <div class="row">
             <div class="input-group">
-                <label>當前遊戲靈敏度</label>
+                <label>当前游戏灵敏度</label>
                 <input type="number" id="sens-input" value="1.0" step="0.01" min="0.01">
             </div>
             <div class="input-group">
-                <label>畫面比例 (FOV FX)</label>
+                <label>画面比例</label>
                 <select id="res-input">
-                    <option value="16:9">16:9 (原生 Native)</option>
-                    <option value="4:3">4:3 (拉伸 Stretched)</option>
+                    <option value="16:9">16:9 (原生)</option>
+                    <option value="4:3">4:3 (拉伸)</option>
                 </select>
             </div>
         </div>
-        <button onclick="startSequence()">啟動神經連結 (Start)</button>
+        <button onclick="startSequence()">开始测试</button>
     </div>
+
+    <!-- 过场倒数 -->
     <div id="transition-screen" class="hidden">
-        <div id="transition-text">PHASE 1: 脈衝打擊 (PULSE STRIKE)</div>
+        <div id="transition-text">阶段 1: 拉枪测试 (Speed)</div>
         <div id="transition-count">3</div>
     </div>
+
+    <!-- 竞技场 -->
     <div id="arena-screen" class="hidden">
         <div id="hud">
-            <div class="stage-title" id="hud-stage">PHASE 1: PULSE</div>
-            <div>TIME: <span id="time-display">15.0</span>s</div>
-            <div>HITS: <span id="score-display">0</span></div>
-            <div>ACC: <span id="acc-display">100</span>%</div>
+            <div class="stage-title" id="hud-stage">拉枪测试</div>
+            <div>时间: <span id="time-display">15.0</span>s</div>
+            <div>命中: <span id="score-display">0</span></div>
+            <div>准确率: <span id="acc-display">100</span>%</div>
         </div>
         <div id="target-container"></div>
     </div>
+
+    <!-- 结果介面 -->
     <div id="result-screen" class="container hidden">
-        <h1 style="margin-bottom:5px;">神經映射報告 (MAPPING REPORT)</h1>
-        <p class="desc" id="report-desc" style="margin-bottom:15px;">基於實彈點擊效率與全域空間控制的解析。</p>
+        <h1 style="margin-bottom:8px;">测试结果报告</h1>
+        <p class="desc" style="margin-bottom:20px;">基于您的测试数据智能调整</p>
         <div>
-            <div class="stat-bar"><div class="stat-label">脈衝爆發 (SPEED)</div><div class="bar-bg"><div class="bar-fill fill-speed" id="bar-speed" style="width:0%;"></div></div><div class="stat-val" id="val-speed">0</div></div>
-            <div class="stat-bar"><div class="stat-label">引力鎖定 (TRACK)</div><div class="bar-bg"><div class="bar-fill fill-smooth" id="bar-smooth" style="width:0%;"></div></div><div class="stat-val" id="val-smooth">0</div></div>
-            <div class="stat-bar"><div class="stat-label">微米校準 (MICRO)</div><div class="bar-bg"><div class="bar-fill fill-prec" id="bar-prec" style="width:0%;"></div></div><div class="stat-val" id="val-prec">0</div></div>
-            <div class="stat-bar"><div class="stat-label">躍遷折返 (FLICK)</div><div class="bar-bg"><div class="bar-fill fill-turn" id="bar-turn" style="width:0%;"></div></div><div class="stat-val" id="val-turn">0</div></div>
+            <div class="stat-bar"><div class="stat-label">拉枪 (Speed)</div><div class="bar-bg"><div class="bar-fill fill-speed" id="bar-speed" style="width:0%;"></div></div><div class="stat-val" id="val-speed">0</div></div>
+            <div class="stat-bar"><div class="stat-label">跟枪 (Tracking)</div><div class="bar-bg"><div class="bar-fill fill-smooth" id="bar-smooth" style="width:0%;"></div></div><div class="stat-val" id="val-smooth">0</div></div>
+            <div class="stat-bar"><div class="stat-label">微调 (Precision)</div><div class="bar-bg"><div class="bar-fill fill-prec" id="bar-prec" style="width:0%;"></div></div><div class="stat-val" id="val-prec">0</div></div>
+            <div class="stat-bar"><div class="stat-label">转身 (Flick)</div><div class="bar-bg"><div class="bar-fill fill-turn" id="bar-turn" style="width:0%;"></div></div><div class="stat-val" id="val-turn">0</div></div>
         </div>
         <div class="result-box">
-            <div style="font-size:12px;color:#a0aabf;letter-spacing:1px;text-transform:uppercase">推薦 <span id="final-game-name">CS2</span> 靈敏度</div>
+            <div style="font-size:13px;color:var(--text-muted);font-weight:500;">推荐 <span id="final-game-name">CS2</span> 灵敏度</div>
             <div class="sens-value" id="final-sens">1.25</div>
-            <p style="font-size:12px;color:#738299;">有效基準 eDPI: <span id="final-edpi">1000</span> | 真實點擊率: <span id="val-acc">100</span>%</p>
+            <p style="font-size:13px;color:var(--text-muted);">有效 eDPI: <span id="final-edpi">1000</span> | 综合准确率: <span id="val-acc">100</span>%</p>
         </div>
         <div class="advice-list" id="advice-container"></div>
-        <button style="margin-top:5px;background:#1f293d;color:#fff;" onclick="location.reload()">重新校準 (REBOOT)</button>
+        <button style="margin-top:5px;" onclick="location.reload()">重新测试</button>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:16px;">点击复制控制台指令：</p>
+        <div class="cmd-text" id="cmd-box" onclick="copyCmd()">sensitivity 1.25</div>
+        <div id="copy-tip" style="color:var(--primary);font-size:12px;margin-top:5px;height:15px;"></div>
     </div>
+
     <script>
-        let currentStage=0,stageTime=15,endTime=0,gameLoopInterval=null,animationFrameId=null;
-        let isMouseDown=false,totalClicks=0;
-        let mouseX=0,mouseY=0;
-        let stageTargetHits=0,trackingTotalTicks=0;
-        let userData={game:'cs2',dpi:800,currentSens:1.0,resolution:'16:9',scores:{speed:0,tracking:0,precision:0,turn:0},clicks:{speed:0,prec:0,turn:0}};
+        // 核心变数
+        let currentStage = 0, stageTime = 15, endTime = 0, gameLoopInterval = null, animationFrameId = null;
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
         
-        document.addEventListener('mousemove',(e)=>{mouseX=e.clientX;mouseY=e.clientY;});
-        document.addEventListener('mousedown',(e)=>{
-            isMouseDown=true;
-            if(!arenaScreen.classList.contains('hidden')&&e.target.id!=='hud'){
-                if(currentStage===1) userData.clicks.speed++;
-                else if(currentStage===3) userData.clicks.prec++;
-                else if(currentStage===4) userData.clicks.turn++;
+        // 准确度记录
+        let ticks = { trackingTotal: 0, trackingHit: 0 };
+        let clicks = { speed: 0, prec: 0, turn: 0 };
+        let hits = { speed: 0, prec: 0, turn: 0 };
+        
+        let userData = { game: 'cs2', dpi: 800, currentSens: 1.0, resolution: '16:9' };
+        
+        // 游戏引擎转换
+        const GAMES = {
+            cs2:      { name: "CS2",       anchor: 880,  multiplier: 1 },
+            valorant: { name: "Valorant",  anchor: 890,  multiplier: 3.181818 },
+            apex:     { name: "Apex",      anchor: 1200, multiplier: 1 },
+            pubg:     { name: "PUBG",      anchor: 1000, multiplier: 34.09 }
+        };
+
+        const dom = {
+            setup: document.getElementById('setup-screen'),
+            transition: document.getElementById('transition-screen'),
+            arena: document.getElementById('arena-screen'),
+            result: document.getElementById('result-screen'),
+            container: document.getElementById('target-container')
+        };
+
+        // 全域鼠标追踪
+        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        document.addEventListener('mousedown', () => isMouseDown = true);
+        document.addEventListener('mouseup', () => isMouseDown = false);
+
+        // 统一处理点击与命中判定 (修正准确度逻辑)
+        dom.arena.addEventListener('mousedown', (e) => {
+            if (currentStage === 1) {
+                clicks.speed++;
+                if (e.target.classList.contains('target-speed')) {
+                    hits.speed++;
+                    document.getElementById('score-display').innerText = hits.speed;
+                    e.target.remove();
+                    spawnSpeedTarget();
+                }
+            } else if (currentStage === 3) {
+                clicks.prec++;
+                if (e.target.classList.contains('target-precision')) {
+                    hits.prec++;
+                    document.getElementById('score-display').innerText = hits.prec;
+                    e.target.remove();
+                    spawnPrecisionTarget();
+                }
+            } else if (currentStage === 4) {
+                // 如果区域已生成目标，才计算点击次数
+                if (document.querySelector('.target-turn')) {
+                    clicks.turn++;
+                    if (e.target.classList.contains('target-turn')) {
+                        hits.turn++;
+                        document.getElementById('score-display').innerText = hits.turn;
+                        e.target.remove();
+                        spawnTurnZone();
+                    }
+                } else if (e.target.classList.contains('turn-zone')) {
+                    // 点击触发区不计入成绩和失误
+                    let isLeft = e.target.classList.contains('left');
+                    e.target.remove();
+                    spawnTurnTarget(isLeft);
+                }
             }
         });
-        document.addEventListener('mouseup',()=>{isMouseDown=false;});
 
-        const setupScreen=document.getElementById('setup-screen'),transitionScreen=document.getElementById('transition-screen'),arenaScreen=document.getElementById('arena-screen'),targetContainer=document.getElementById('target-container'),resultScreen=document.getElementById('result-screen');
-        
-        function getUniversalEDPI(game, sens, dpi) {
-            let edpi = sens * dpi;
-            if(game === 'valorant') return edpi * 3.181818;
-            if(game === 'pubg') return edpi * 34.09;
-            return edpi; 
-        }
-        function getGameSens(game, universalEdpi, dpi) {
-            let sens = universalEdpi / dpi;
-            if(game === 'valorant') return sens / 3.181818;
-            if(game === 'pubg') return sens / 34.09;
-            return sens;
-        }
-        function getGameAnchor(game) {
-            if(game==='valorant') return 890;
-            if(game==='apex') return 1200;
-            if(game==='pubg') return 1000;
-            return 880; 
-        }
-
-        function startSequence(){
-            userData.game=document.getElementById('game-input').value;
-            userData.dpi=parseInt(document.getElementById('dpi-input').value)||800;
-            userData.currentSens=parseFloat(document.getElementById('sens-input').value)||1.0;
-            userData.resolution=document.getElementById('res-input').value;
-            setupScreen.classList.add('hidden');
+        function startSequence() {
+            userData.game = document.getElementById('game-input').value;
+            userData.dpi = parseInt(document.getElementById('dpi-input').value) || 800;
+            userData.currentSens = parseFloat(document.getElementById('sens-input').value) || 1.0;
+            userData.resolution = document.getElementById('res-input').value;
+            dom.setup.classList.add('hidden');
             nextStage();
         }
-        function nextStage(){
-            currentStage++;
-            if(currentStage>4){showResults();return;}
-            arenaScreen.classList.add('hidden');
-            targetContainer.innerHTML='';
-            transitionScreen.classList.remove('hidden');
-            let stageNames=["","PHASE 1: 脈衝打擊 (PULSE STRIKE)","PHASE 2: 引力鎖定 (GRAVITY LOCK)","PHASE 3: 微米校準 (MICRO-CALIBRATE)","PHASE 4: 躍遷折返 (WARP RETURN)"];
-            document.getElementById('transition-text').innerText=stageNames[currentStage];
-            let countdown=3;
-            document.getElementById('transition-count').innerText=countdown;
-            let countInterval=setInterval(()=>{
-                countdown--;
-                if(countdown>0)document.getElementById('transition-count').innerText=countdown;
-                else{clearInterval(countInterval);transitionScreen.classList.add('hidden');startCurrentStage();}
-            },1000);
-        }
-        function startCurrentStage(){
-            arenaScreen.classList.remove('hidden');
-            let stageNamesShort=["","PULSE","GRAVITY","MICRO","WARP"];
-            document.getElementById('hud-stage').innerText=stageNamesShort[currentStage];
-            document.getElementById('score-display').innerText="0";
-            document.getElementById('acc-display').innerText="100";
-            stageTargetHits=0;
-            endTime=Date.now()+(stageTime*1000);
-            if(currentStage===1)initStageSpeed();
-            else if(currentStage===2)initStageTracking();
-            else if(currentStage===3)initStagePrecision();
-            else if(currentStage===4)initStageTurn();
-            gameLoopInterval=setInterval(()=>{
-                let timeLeft=Math.max(0,(endTime-Date.now())/1000);
-                document.getElementById('time-display').innerText=timeLeft.toFixed(1);
-                
-                let liveAcc=100;
-                if(currentStage===1 && userData.clicks.speed>0) liveAcc=Math.round((userData.scores.speed/userData.clicks.speed)*100);
-                else if(currentStage===2 && trackingTotalTicks>0) liveAcc=Math.round((userData.scores.tracking/trackingTotalTicks)*100);
-                else if(currentStage===3 && userData.clicks.prec>0) liveAcc=Math.round((userData.scores.precision/userData.clicks.prec)*100);
-                else if(currentStage===4 && userData.clicks.turn>0) liveAcc=Math.round((userData.scores.turn/userData.clicks.turn)*100);
-                document.getElementById('acc-display').innerText=Math.min(100, liveAcc);
 
-                if(timeLeft<=0){
+        function nextStage() {
+            currentStage++;
+            if (currentStage > 4) { showResults(); return; }
+            
+            dom.arena.classList.add('hidden');
+            dom.container.innerHTML = '';
+            dom.transition.classList.remove('hidden');
+            
+            const stageNames = ["", "阶段 1: 拉枪测试 (Speed)", "阶段 2: 跟枪测试 (Tracking)", "阶段 3: 微调测试 (Precision)", "阶段 4: 转身测试 (Flick)"];
+            document.getElementById('transition-text').innerText = stageNames[currentStage];
+            
+            let count = 3;
+            document.getElementById('transition-count').innerText = count;
+            let timer = setInterval(() => {
+                count--;
+                if (count > 0) document.getElementById('transition-count').innerText = count;
+                else { clearInterval(timer); dom.transition.classList.add('hidden'); startCurrentStage(); }
+            }, 1000);
+        }
+
+        function startCurrentStage() {
+            dom.arena.classList.remove('hidden');
+            const shortNames = ["", "拉枪测试", "跟枪测试", "微调测试", "转身测试"];
+            document.getElementById('hud-stage').innerText = shortNames[currentStage];
+            document.getElementById('score-display').innerText = "0";
+            document.getElementById('acc-display').innerText = "100";
+            
+            endTime = Date.now() + (stageTime * 1000);
+            
+            if (currentStage === 1) { for(let i=0; i<3; i++) spawnSpeedTarget(); }
+            else if (currentStage === 2) initStageTracking();
+            else if (currentStage === 3) initStagePrecision();
+            else if (currentStage === 4) spawnTurnZone();
+            
+            gameLoopInterval = setInterval(() => {
+                let timeLeft = Math.max(0, (endTime - Date.now()) / 1000);
+                document.getElementById('time-display').innerText = timeLeft.toFixed(1);
+                
+                let acc = 100;
+                if (currentStage === 1 && clicks.speed > 0) acc = (hits.speed / clicks.speed) * 100;
+                else if (currentStage === 2 && ticks.trackingTotal > 0) acc = (ticks.trackingHit / ticks.trackingTotal) * 100;
+                else if (currentStage === 3 && clicks.prec > 0) acc = (hits.prec / clicks.prec) * 100;
+                else if (currentStage === 4 && clicks.turn > 0) acc = (hits.turn / clicks.turn) * 100;
+                document.getElementById('acc-display').innerText = Math.round(acc);
+
+                if (timeLeft <= 0) {
                     clearInterval(gameLoopInterval);
-                    if(animationFrameId)cancelAnimationFrame(animationFrameId);
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
                     nextStage();
                 }
-            },50);
+            }, 50);
         }
-        function initStageSpeed(){for(let i=0;i<3;i++)spawnSpeedTarget();}
-        function spawnSpeedTarget(){
-            const t=document.createElement('div');
-            t.className='target target-speed';
-            const size=55;
-            t.style.width=size+'px';t.style.height=size+'px';
-            const maxX=window.innerWidth-size,maxY=window.innerHeight-size;
-            t.style.left=(Math.random()*(maxX-100)+50)+'px';
-            t.style.top=(Math.random()*(maxY-150)+100)+'px';
-            t.addEventListener('mousedown',(e)=>{
-                e.stopPropagation(); 
-                userData.clicks.speed++;
-                userData.scores.speed++;
-                document.getElementById('score-display').innerText=userData.scores.speed;
-                t.remove();
-                spawnSpeedTarget();
-            });
-            targetContainer.appendChild(t);
+
+        // 阶段 1: 拉枪
+        function spawnSpeedTarget() {
+            const t = document.createElement('div');
+            t.className = 'target target-speed';
+            const size = 60;
+            t.style.width = size + 'px'; t.style.height = size + 'px';
+            t.style.left = (Math.random() * (window.innerWidth - 100) + 50) + 'px';
+            t.style.top = (Math.random() * (window.innerHeight - 150) + 100) + 'px';
+            dom.container.appendChild(t);
         }
-        let trackTarget=null,tX=window.innerWidth/2,tY=window.innerHeight/2,trackTime=0;
-        function initStageTracking(){
-            trackTarget=document.createElement('div');
-            trackTarget.className='target target-tracking';
-            const size=65;
-            trackTarget.style.width=size+'px';trackTarget.style.height=size+'px';
-            targetContainer.appendChild(trackTarget);
-            tX=window.innerWidth/2;tY=window.innerHeight/2;
-            trackingTotalTicks=0;
+
+        // 阶段 2: 跟枪
+        let trackTarget = null, tX = window.innerWidth/2, tY = window.innerHeight/2, trackTime = 0;
+        function initStageTracking() {
+            trackTarget = document.createElement('div');
+            trackTarget.className = 'target target-tracking';
+            trackTarget.style.width = '65px'; trackTarget.style.height = '65px';
+            dom.container.appendChild(trackTarget);
+            ticks.trackingTotal = 0; ticks.trackingHit = 0;
             trackingLoop();
         }
-        function trackingLoop(){
-            trackTime+=0.009;
-            tX=window.innerWidth/2+Math.sin(trackTime*1.1)*(window.innerWidth*0.25)+Math.cos(trackTime*1.7)*60;
-            tY=window.innerHeight/2+Math.cos(trackTime*0.9)*(window.innerHeight*0.2)+Math.sin(trackTime*1.3)*40;
-            trackTarget.style.left=tX+'px';trackTarget.style.top=tY+'px';
-            const dist=Math.sqrt(Math.pow(mouseX-tX,2)+Math.pow(mouseY-tY,2));
-            if(isMouseDown){
-                trackingTotalTicks++;
-                if(dist<32){
-                    userData.scores.tracking++;
+        function trackingLoop() {
+            trackTime += 0.0085;
+            tX = window.innerWidth/2 + Math.sin(trackTime*1.2)*(window.innerWidth*0.2) + Math.cos(trackTime*1.8)*50;
+            tY = window.innerHeight/2 + Math.cos(trackTime*0.9)*(window.innerHeight*0.15) + Math.sin(trackTime*1.3)*30;
+            trackTarget.style.left = tX + 'px'; trackTarget.style.top = tY + 'px';
+            
+            if (isMouseDown) {
+                ticks.trackingTotal++;
+                let dist = Math.hypot(mouseX - tX, mouseY - tY);
+                if (dist < 32) {
+                    ticks.trackingHit++;
                     trackTarget.classList.add('tracking-active');
-                }else{
+                } else {
                     trackTarget.classList.remove('tracking-active');
                 }
-                if(trackingTotalTicks%5===0)document.getElementById('score-display').innerText=Math.floor(userData.scores.tracking/5);
-            }else{
+                document.getElementById('score-display').innerText = Math.floor(ticks.trackingHit / 5);
+            } else {
                 trackTarget.classList.remove('tracking-active');
             }
-            animationFrameId=requestAnimationFrame(trackingLoop);
+            if(currentStage === 2) animationFrameId = requestAnimationFrame(trackingLoop);
         }
-        let precLastX=window.innerWidth/2,precLastY=window.innerHeight/2;
-        let driftTime=0, precTarget=null;
-        function initStagePrecision(){
-            precLastX=window.innerWidth/2;precLastY=window.innerHeight/2;
+
+        // 阶段 3: 微调
+        let precLastX = window.innerWidth/2, precLastY = window.innerHeight/2, precTarget = null, driftTime = 0;
+        function initStagePrecision() {
+            precLastX = window.innerWidth/2; precLastY = window.innerHeight/2;
             spawnPrecisionTarget();
             precisionDriftLoop();
         }
-        function spawnPrecisionTarget(){
-            if(precTarget) precTarget.remove();
-            precTarget=document.createElement('div');
-            precTarget.className='target target-precision';
-            const size=14;
-            precTarget.style.width=size+'px';precTarget.style.height=size+'px';
-            let angle=Math.random()*Math.PI*2;
-            let distance=20+Math.random()*80;
-            let nextX=precLastX+Math.cos(angle)*distance;
-            let nextY=precLastY+Math.sin(angle)*distance;
-            if(nextX<window.innerWidth*0.3||nextX>window.innerWidth*0.7||nextY<window.innerHeight*0.3||nextY>window.innerHeight*0.7){
-                nextX=window.innerWidth/2;nextY=window.innerHeight/2;
+        function spawnPrecisionTarget() {
+            const t = document.createElement('div');
+            t.className = 'target target-precision';
+            t.style.width = '12px'; t.style.height = '12px';
+            let angle = Math.random() * Math.PI * 2;
+            let distance = 20 + Math.random() * 60;
+            let nextX = precLastX + Math.cos(angle)*distance;
+            let nextY = precLastY + Math.sin(angle)*distance;
+            if (nextX < window.innerWidth*0.3 || nextX > window.innerWidth*0.7 || nextY < window.innerHeight*0.3 || nextY > window.innerHeight*0.7) {
+                nextX = window.innerWidth/2; nextY = window.innerHeight/2;
             }
-            precLastX=nextX;precLastY=nextY;
-            precTarget.dataset.basex=nextX;
-            precTarget.dataset.basey=nextY;
-            precTarget.addEventListener('mousedown',(e)=>{
-                e.stopPropagation();
-                userData.clicks.prec++;
-                userData.scores.precision++;
-                document.getElementById('score-display').innerText=userData.scores.precision;
-                spawnPrecisionTarget();
-            });
-            targetContainer.appendChild(precTarget);
+            precLastX = nextX; precLastY = nextY;
+            t.dataset.bx = nextX; t.dataset.by = nextY;
+            dom.container.appendChild(t);
+            precTarget = t;
         }
-        function precisionDriftLoop(){
-            if(precTarget&&currentStage===3){
-                driftTime+=0.05;
-                let bx=parseFloat(precTarget.dataset.basex);
-                let by=parseFloat(precTarget.dataset.basey);
-                precTarget.style.left=(bx+Math.sin(driftTime)*5)+'px';
-                precTarget.style.top=(by+Math.cos(driftTime*0.8)*5)+'px';
+        function precisionDriftLoop() {
+            if (precTarget && currentStage === 3) {
+                driftTime += 0.05;
+                let bx = parseFloat(precTarget.dataset.bx), by = parseFloat(precTarget.dataset.by);
+                precTarget.style.left = (bx + Math.sin(driftTime)*4) + 'px';
+                precTarget.style.top = (by + Math.cos(driftTime*0.8)*4) + 'px';
             }
-            if(currentStage===3) animationFrameId=requestAnimationFrame(precisionDriftLoop);
+            if(currentStage === 3) animationFrameId = requestAnimationFrame(precisionDriftLoop);
         }
-        function initStageTurn(){spawnTurnZone();}
-        function spawnTurnZone(){
-            let isLeft=Math.random()>0.5;
-            let zone=document.createElement('div');
-            zone.className='turn-zone';
-            zone.style.left=isLeft?'0':'calc(100vw - 60px)';
-            zone.addEventListener('mousedown',(e)=>{
-                e.stopPropagation();
-                userData.clicks.turn++;
-                zone.remove();
-                spawnTurnTarget(isLeft);
-            });
-            targetContainer.appendChild(zone);
+
+        // 阶段 4: 转身
+        function spawnTurnZone() {
+            let isLeft = Math.random() > 0.5;
+            let zone = document.createElement('div');
+            zone.className = `turn-zone ${isLeft ? 'left' : 'right'}`;
+            zone.dataset.side = isLeft ? 'left' : 'right';
+            dom.container.appendChild(zone);
         }
-        function spawnTurnTarget(wasLeft){
-            const t=document.createElement('div');
-            t.className='target target-turn';
-            const size=30;
-            t.style.width=size+'px';t.style.height=size+'px';
-            let targetX=wasLeft? (window.innerWidth*0.75+Math.random()*(window.innerWidth*0.15)) : (window.innerWidth*0.10+Math.random()*(window.innerWidth*0.15));
-            let targetY=window.innerHeight*0.3+Math.random()*(window.innerHeight*0.4);
-            t.style.left=targetX+'px';t.style.top=targetY+'px';
-            let expireTimer=setTimeout(()=>{if(t.parentNode){t.remove();spawnTurnZone();}},2000);
-            t.addEventListener('mousedown',(e)=>{
-                e.stopPropagation();
-                userData.clicks.turn++;
-                clearTimeout(expireTimer);
-                userData.scores.turn++;
-                document.getElementById('score-display').innerText=userData.scores.turn;
-                t.remove();
-                spawnTurnZone();
-            });
-            targetContainer.appendChild(t);
+        function spawnTurnTarget(wasLeft) {
+            const t = document.createElement('div');
+            t.className = 'target target-turn';
+            t.style.width = '35px'; t.style.height = '35px';
+            let tx = wasLeft ? (window.innerWidth*0.75 + Math.random()*(window.innerWidth*0.15)) : (window.innerWidth*0.1 + Math.random()*(window.innerWidth*0.15));
+            let ty = window.innerHeight*0.3 + Math.random()*(window.innerHeight*0.4);
+            t.style.left = tx + 'px'; t.style.top = ty + 'px';
+            dom.container.appendChild(t);
+            // 2秒未命中自动重置
+            setTimeout(() => { if(t.parentNode && currentStage === 4) { t.remove(); spawnTurnZone(); } }, 2000);
         }
-        function showResults(){
-            arenaScreen.classList.add('hidden');
-            resultScreen.classList.remove('hidden');
-            const s_speed=userData.scores.speed,s_track=Math.floor(userData.scores.tracking/5),s_prec=userData.scores.precision,s_turn=userData.scores.turn;
-            let accSpeed=userData.clicks.speed>0?(s_speed/userData.clicks.speed):0;
-            let accTrack=trackingTotalTicks>0?(userData.scores.tracking/trackingTotalTicks):0;
-            let accPrec=userData.clicks.prec>0?(s_prec/userData.clicks.prec):0;
-            let accTurn=userData.clicks.turn>0?(s_turn/userData.clicks.turn):0;
-            let overallAcc=Math.round((accSpeed*0.25+accTrack*0.3+accPrec*0.3+accTurn*0.15)*100);
 
-            document.getElementById('val-speed').innerText=s_speed;
-            document.getElementById('bar-speed').style.width=Math.min(100,(s_speed/35)*100)+'%';
-            document.getElementById('val-smooth').innerText=s_track;
-            document.getElementById('bar-smooth').style.width=Math.min(100,(s_track/90)*100)+'%';
-            document.getElementById('val-prec').innerText=s_prec;
-            document.getElementById('bar-prec').style.width=Math.min(100,(s_prec/25)*100)+'%';
-            document.getElementById('val-turn').innerText=s_turn;
-            document.getElementById('bar-turn').style.width=Math.min(100,(s_turn/15)*100)+'%';
-            document.getElementById('val-acc').innerText=overallAcc;
-
-            let uni_eDPI=getUniversalEDPI(userData.game, userData.currentSens, userData.dpi);
-            let gameAnchor=getGameAnchor(userData.game);
-            let base_eDPI=uni_eDPI;
-            let advices=[];
-
-            if(uni_eDPI>1400){base_eDPI=gameAnchor+(uni_eDPI-gameAnchor)*0.4;}
-            else if(uni_eDPI<500){base_eDPI=gameAnchor-(gameAnchor-uni_eDPI)*0.4;}
-
-            let multiplier=1.0;
-            if(s_speed>28 && accSpeed<0.6){
-                multiplier*=0.94;
-                advices.push("「脈衝打擊」點擊率偏低，盲目追求速度導致空槍，建議微降靈敏度以穩固肌肉發力點。");
-            }else if(s_speed<15){
-                multiplier*=1.05;
-                advices.push("「脈衝打擊」爆發速度不足，適當提高靈敏度可減少大範圍轉移時的手部負擔。");
-            }
-
-            if(accTrack<0.4){
-                multiplier*=0.95;
-                advices.push("「引力鎖定」時無法有效維持點擊鎖定，跟槍過度抖動，已向平穩控制區間拉扯。");
-            }else if(s_track<40){
-                multiplier*=1.04;
-                advices.push("跟槍時手腕僵硬或活動範圍受限，建議稍微提速以獲得更順暢的追蹤體驗。");
-            }
-
-            if(accPrec<0.5 || s_prec<10){
-                multiplier*=0.95;
-                advices.push("「微米校準」失誤頻發，實彈點擊時存在滑動溢出，降低靈敏度有助於強化微調定位。");
-            }
-
-            if(s_turn<6){
-                multiplier*=1.06;
-                advices.push("「躍遷折返」得分過低，桌面空間可能受限，已提高靈敏度以保障大角度轉身的機動性。");
-            }else if(accTurn>0.8 && s_turn>10){
-                advices.push("空間折返定位極度精準，大角度甩槍與急停控制完美。");
-            }
-
-            if(userData.resolution==='4:3'){
-                multiplier*=0.96;
-                advices.push("已根據 4:3 畫面拉伸造成的橫向視覺形變，套用相應的視覺降敏補償。");
-            }
-            if(advices.length===0) advices.push("當前各維度肌肉記憶高度契合，請保持現有參數設定。");
-
-            let final_uni_eDPI=base_eDPI*multiplier;
-            if(final_uni_eDPI<400)final_uni_eDPI=400;
-            if(final_uni_eDPI>2000)final_uni_eDPI=2000;
+        // 结果计算
+        function showResults() {
+            dom.arena.classList.add('hidden');
+            dom.result.classList.remove('hidden');
             
-            let final_sens=getGameSens(userData.game, final_uni_eDPI, userData.dpi).toFixed(3);
+            const s_speed = hits.speed;
+            const s_track = Math.floor(ticks.trackingHit / 5);
+            const s_prec = hits.prec;
+            const s_turn = hits.turn;
             
-            document.getElementById('final-game-name').innerText=document.getElementById('game-input').options[document.getElementById('game-input').selectedIndex].text;
-            document.getElementById('final-sens').innerText=final_sens;
-            document.getElementById('final-edpi').innerText=Math.round(final_uni_eDPI);
+            let a_speed = clicks.speed > 0 ? hits.speed / clicks.speed : 0;
+            let a_track = ticks.trackingTotal > 0 ? ticks.trackingHit / ticks.trackingTotal : 0;
+            let a_prec = clicks.prec > 0 ? hits.prec / clicks.prec : 0;
+            let a_turn = clicks.turn > 0 ? hits.turn / clicks.turn : 0;
             
-            const adviceContainer=document.getElementById('advice-container');
-            adviceContainer.innerHTML='';
-            advices.forEach(item=>{
-                const div=document.createElement('div');
-                div.className='advice-item';
-                div.innerText='[SYS] '+item;
+            let overallAcc = Math.round((a_speed*0.25 + a_track*0.3 + a_prec*0.3 + a_turn*0.15) * 100);
+
+            document.getElementById('val-speed').innerText = s_speed;
+            document.getElementById('bar-speed').style.width = Math.min(100, (s_speed/35)*100) + '%';
+            document.getElementById('val-smooth').innerText = s_track;
+            document.getElementById('bar-smooth').style.width = Math.min(100, (s_track/100)*100) + '%';
+            document.getElementById('val-prec').innerText = s_prec;
+            document.getElementById('bar-prec').style.width = Math.min(100, (s_prec/25)*100) + '%';
+            document.getElementById('val-turn').innerText = s_turn;
+            document.getElementById('bar-turn').style.width = Math.min(100, (s_turn/12)*100) + '%';
+            document.getElementById('val-acc').innerText = overallAcc;
+
+            const gameCfg = GAMES[userData.game];
+            let uni_eDPI = userData.currentSens * userData.dpi * gameCfg.multiplier;
+            let base_eDPI = uni_eDPI;
+            let advices = [];
+
+            // 基础锚点收拢
+            if (uni_eDPI > 1400) base_eDPI = gameCfg.anchor + (uni_eDPI - gameCfg.anchor) * 0.4;
+            else if (uni_eDPI < 500) base_eDPI = gameCfg.anchor - (gameCfg.anchor - uni_eDPI) * 0.4;
+
+            let multiplier = 1.0;
+
+            // 诊断与修正
+            if (s_speed > 28 && a_speed < 0.6) {
+                multiplier *= 0.94; advices.push("拉枪准确率偏低，盲目追求速度导致空枪，建议微降灵敏度。");
+            } else if (s_speed < 15) {
+                multiplier *= 1.05; advices.push("拉枪爆发速度不足，适当提高灵敏度可减少大范围转移负担。");
+            }
+
+            if (a_track < 0.4) {
+                multiplier *= 0.95; advices.push("跟枪时准星过度抖动，无法稳定锁定目标，系统已下调灵敏度。");
+            } else if (s_track < 40) {
+                multiplier *= 1.04; advices.push("跟枪得分偏低，手腕可能僵硬或活动范围受限，建议稍微提速。");
+            }
+
+            if (a_prec < 0.5 || s_prec < 10) {
+                multiplier *= 0.95; advices.push("微调测试失误频发，降低灵敏度有助于强化细微定位精度。");
+            }
+
+            if (s_turn < 6) {
+                multiplier *= 1.06; advices.push("转身测试表现较弱，可能是桌面空间受限，已提高基准以保障机动性。");
+            } else if (a_turn > 0.8 && s_turn > 10) {
+                advices.push("大角度转身定位极其精准，空间控制力完美。");
+            }
+
+            if (userData.resolution === '4:3') {
+                multiplier *= 0.96; advices.push("已套用 4:3 画面拉伸视觉降敏补偿。");
+            }
+            
+            if (advices.length === 0) advices.push("各项测试表现均衡，当前肌肉记忆高度契合，请保持设定。");
+
+            let final_uni_eDPI = Math.max(400, Math.min(2000, base_eDPI * multiplier));
+            let final_sens = (final_uni_eDPI / userData.dpi / gameCfg.multiplier).toFixed(3);
+            
+            document.getElementById('final-game-name').innerText = gameCfg.name;
+            document.getElementById('final-sens').innerText = final_sens;
+            document.getElementById('final-edpi').innerText = Math.round(final_uni_eDPI);
+            document.getElementById('cmd-box').innerText = `sensitivity ${final_sens}`;
+            
+            const adviceContainer = document.getElementById('advice-container');
+            adviceContainer.innerHTML = '';
+            advices.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'advice-item';
+                div.innerText = item;
                 adviceContainer.appendChild(div);
+            });
+        }
+
+        function copyCmd() {
+            navigator.clipboard.writeText(document.getElementById('cmd-box').innerText).then(() => {
+                const tip = document.getElementById('copy-tip');
+                tip.innerText = "已复制指令！";
+                setTimeout(() => tip.innerText = "", 2000);
             });
         }
     </script>
